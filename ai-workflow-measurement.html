@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study — AI ROI Is a Query, Not an Anecdote</title>
+<style>
+  :root{
+    --ink:#1a1f2e; --ink2:#4a5163; --ink3:#767d90;
+    --line:#e3e5ea; --bg:#fafafc; --card:#ffffff;
+    --accent:#3b5bdb; --accent-dim:#eef1fc;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#e8eaf0; --ink2:#b3b9c9; --ink3:#8a91a3;
+      --line:#2c3040; --bg:#14161e; --card:#1b1e29;
+      --accent:#7a95f5; --accent-dim:#232941;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink2);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:0 28px 80px}
+  h1,h2,h3,h4{color:var(--ink);line-height:1.2;font-weight:700}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+
+  .hero{border-bottom:1px solid var(--line);padding:64px 0 40px;margin-bottom:8px}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:2.5px;font-size:12px;
+    text-transform:uppercase;margin:0 0 16px}
+  .hero h1{font-size:38px;margin:0 0 18px;letter-spacing:-.5px}
+  .hero .lede{font-size:19px;max-width:780px;margin:0 0 26px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{font-size:12.5px;font-family:var(--mono);color:var(--ink2);
+    background:var(--card);border:1px solid var(--line);border-radius:4px;padding:3px 10px}
+
+  h2{font-size:25px;margin:52px 0 10px}
+  h2 .no{color:var(--accent);font-family:var(--mono);font-size:15px;vertical-align:middle;margin-right:10px}
+  .sub{margin:0 0 20px;max-width:800px}
+  p{margin:0 0 14px}
+  strong{color:var(--ink)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
+  .stat .v{font-size:30px;font-weight:750;color:var(--ink);letter-spacing:-.5px}
+  .stat .l{font-size:13px;font-weight:650;color:var(--ink);margin:2px 0 3px}
+  .stat .d{font-size:12.5px;color:var(--ink3);line-height:1.45}
+
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:0 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:18px 22px;margin:0 0 14px}
+  .grid3 .card{margin:0;border-left:none;border-top:3px solid var(--accent)}
+  .card.plain{border-left-color:var(--line)}
+  .card h4{margin:0 0 6px;font-size:15.5px}
+  .card p{font-size:14px;margin:0}
+  .pill{display:inline-block;font-size:11px;font-weight:750;letter-spacing:.7px;
+    text-transform:uppercase;color:var(--accent);background:var(--accent-dim);
+    border-radius:3px;padding:3px 9px;margin:0 0 8px}
+
+  pre{background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;
+    line-height:1.55;color:var(--ink);margin:0 0 14px}
+  code{font-family:var(--mono);font-size:13px;background:var(--accent-dim);
+    border-radius:3px;padding:1px 6px;color:var(--ink)}
+  pre code{background:none;padding:0}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0 24px;font-size:14.5px}
+  th{text-align:left;color:var(--ink);font-size:12.5px;text-transform:uppercase;
+    letter-spacing:.8px;padding:9px 14px;border-bottom:2px solid var(--line)}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+  ul{margin:0 0 14px;padding-left:22px}
+  li{margin:0 0 8px;font-size:15px}
+  li::marker{color:var(--accent)}
+  .foot{border-top:1px solid var(--line);margin-top:56px;padding-top:18px;font-size:13px;color:var(--ink3)}
+  @media (max-width:760px){ .stats{grid-template-columns:repeat(2,1fr)} .grid3{grid-template-columns:1fr} .hero h1{font-size:30px} }
+  @media print{ body{background:#fff} .hero{padding-top:24px} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap" style="padding-bottom:0">
+    <p class="kicker">Case Study · AI Operations &amp; Measurement</p>
+    <h1>AI ROI Is a Query, Not an Anecdote</h1>
+    <p class="lede">A measurement framework for a growing portfolio of AI automations: every workflow — agent, script, automation, or report — logs its outcomes through one importable logger into one central warehouse table. Cost, quality, volume, and ROI stop being claims in a slide deck and become rows you can <code>GROUP BY</code>.</p>
+    <div class="meta">
+      <span class="tag">Python logger</span>
+      <span class="tag">central warehouse table</span>
+      <span class="tag">JSONL local fallback</span>
+      <span class="tag">dashboards + alert rules</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">1</div><div class="l">Import to instrument</div><div class="d">Any workflow joins the framework with one import and one <code>log()</code> call.</div></div>
+      <div class="stat"><div class="v">4</div><div class="l">Workflow types</div><div class="d">Agent, script, automation, report — one schema fits all.</div></div>
+      <div class="stat"><div class="v">5</div><div class="l">Core metrics</div><div class="d">Cost, quality, items, ROI, duration — per run.</div></div>
+      <div class="stat"><div class="v">3</div><div class="l">Alert classes</div><div class="d">Cost spike, quality drop, failure rate — caught early, not at review time.</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2><span class="no">01</span>The problem — a portfolio nobody can see</h2>
+  <p class="sub">Once you have half a dozen AI workflows in production — a triage agent, daily briefing automations, report generators, metadata enrichment jobs — a new problem appears: <strong>nobody knows what any of it is worth</strong>. No per-run cost, no quality trend, no failure visibility, no answer to "which of these should we scale and which should we kill?"</p>
+  <p>The uninstrumented default is anecdote-driven: automations feel useful, so they survive. That's exactly the kind of reasoning AI was supposed to replace. If AI adoption is worth leading, it's worth measuring like any other production system.</p>
+
+  <h2><span class="no">02</span>Architecture — three tiers, one principle</h2>
+  <p class="sub">The principle: <strong>one import, works everywhere</strong>. Instrumentation that takes more than two lines doesn't get adopted.</p>
+  <div class="grid3">
+    <div class="card"><span class="pill">Tier 1 · Storage</span>
+      <h4>One central table</h4>
+      <p>A single warehouse table holds every run of every workflow — a deliberately flexible schema (typed core columns + a metadata JSON blob) so agents and report scripts coexist without migrations.</p>
+    </div>
+    <div class="card"><span class="pill">Tier 2 · Logging</span>
+      <h4>One Python class</h4>
+      <p>An importable <code>WorkflowOutcomesLogger</code>: declare the workflow's name, type, and environment once; call <code>log()</code> with the run's outcomes. Dual-writes to the warehouse and a local JSONL file, so an offline run never loses data.</p>
+    </div>
+    <div class="card"><span class="pill">Tier 3 · Analysis</span>
+      <h4>Queries, dashboards, alerts</h4>
+      <p>SQL templates and a portfolio dashboard over the one table; alert rules fire on cost spikes &gt;20%, quality drops &gt;10%, or failure rates &gt;5%.</p>
+    </div>
+  </div>
+
+  <h2><span class="no">03</span>The integration contract</h2>
+  <p class="sub">This is the whole ask for a workflow owner — which is why adoption worked:</p>
+  <pre><code>from outcomes_logger import WorkflowOutcomesLogger
+
+logger = WorkflowOutcomesLogger(
+    workflow_name="ticket-triage-agent",
+    workflow_type="agent",        # or "script" / "automation" / "report"
+    environment="prod",
+)
+
+# ... the workflow does its work ...
+
+logger.log(
+    status="success",
+    items_output=18,              # e.g. tickets triaged
+    cost_usd=0.05,
+    quality_score=0.94,
+    metadata={"action": "answered"},
+)
+logger.write_to_jsonl(Path("outcomes/outcomes.jsonl"))   # local fallback</code></pre>
+
+  <h2><span class="no">04</span>One schema, four kinds of work</h2>
+  <p class="sub">The framework's real trick is semantic, not technical: defining what "items", "quality", and "ROI" mean per workflow type, so wildly different automations land in comparable columns.</p>
+  <table>
+    <thead><tr><th>Metric</th><th>Purpose</th><th>Example (agent)</th><th>Example (automation)</th></tr></thead>
+    <tbody>
+      <tr><td>Cost</td><td>LLM tokens → $ per run</td><td>$0.05 / ticket</td><td>$0.18 for 45 items</td></tr>
+      <tr><td>Quality</td><td>Accuracy / confidence score</td><td>0.94 confidence</td><td>descriptions accepted</td></tr>
+      <tr><td>Items</td><td>Volume processed</td><td>tickets triaged</td><td>tables enriched</td></tr>
+      <tr><td>ROI</td><td>Value − cost, per run</td><td>items × unit value − cost</td><td>45 × $2 − $0.18</td></tr>
+      <tr><td>Duration</td><td>Performance trend</td><td>45 s / run</td><td>minutes / batch</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">05</span>Design decisions worth stealing</h2>
+  <ul>
+    <li><strong>Dual-write with a local JSONL fallback.</strong> The warehouse write can fail (auth, network, platform maintenance); the measurement must not. Local files reconcile later — instrumentation never becomes the reason a workflow fails.</li>
+    <li><strong>Flexible schema over per-workflow tables.</strong> One table with a metadata blob beats a migration every time a new workflow type appears. Portfolio-level questions ("total spend this month, by type") are one query.</li>
+    <li><strong>Alerts as part of the framework, not an afterthought.</strong> Cost and quality regressions in AI systems are silent by default — a model change or a prompt edit shifts behavior with no exception thrown. Thresholded alerts turn those into pages.</li>
+    <li><strong>Compounding by design.</strong> Every newly instrumented workflow makes the portfolio view more complete — the framework gets more valuable with each adopter, which is what makes a measurement culture stick.</li>
+  </ul>
+
+  <h2><span class="no">06</span>Outcomes</h2>
+  <ul>
+    <li>The AI portfolio became a <strong>queryable production system</strong>: per-workflow cost, quality trend, and ROI on one dashboard, instead of scattered impressions.</li>
+    <li>"Should we scale this automation?" now has a <strong>numeric answer</strong> — and so does "should we kill it?".</li>
+    <li>The framework became the substrate for team-level AI-adoption reporting — the same rows roll up from a single run to a quarterly narrative.</li>
+  </ul>
+
+  <div class="foot">Part of a portfolio: <a href="index.html">all case studies</a> · the <a href="self-healing-triage-agent.html">self-healing triage agent</a> is one of the workflows this framework measures. All identifiers and business specifics removed; architecture and engineering practices only.</div>
+
+</div>
+</body>
+</html>
