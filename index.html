@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aleksandra Czepierga — AI-First Data Leader · Portfolio</title>
+<style>
+  :root{
+    --ink:#1a1f2e; --ink2:#4a5163; --ink3:#767d90;
+    --line:#e3e5ea; --bg:#fafafc; --card:#ffffff;
+    --accent:#3b5bdb; --accent-dim:#eef1fc;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#e8eaf0; --ink2:#b3b9c9; --ink3:#8a91a3;
+      --line:#2c3040; --bg:#14161e; --card:#1b1e29;
+      --accent:#7a95f5; --accent-dim:#232941;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink2);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:0 28px 80px}
+  h1,h2,h3{color:var(--ink);line-height:1.2;font-weight:700}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+
+  .hero{border-bottom:1px solid var(--line);padding:72px 0 44px;margin-bottom:8px}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:2.5px;font-size:12px;
+    text-transform:uppercase;margin:0 0 16px}
+  .hero h1{font-size:40px;margin:0 0 8px;letter-spacing:-.5px}
+  .hero .role{font-size:19px;color:var(--accent);font-weight:650;margin:0 0 18px}
+  .hero .lede{font-size:18px;max-width:760px;margin:0 0 24px}
+  .links{display:flex;flex-wrap:wrap;gap:10px;font-size:14px;align-items:center}
+  .links span{color:var(--ink3)}
+  .btn{display:inline-block;background:var(--accent);color:#fff;font-weight:650;
+    border-radius:6px;padding:8px 18px;font-size:14px}
+  .btn:hover{text-decoration:none;opacity:.92}
+
+  .arc{font-family:var(--mono);font-size:13px;color:var(--ink3);margin:44px 0 6px;
+    letter-spacing:.5px}
+  .arc b{color:var(--accent)}
+  h2{font-size:24px;margin:6px 0 18px}
+
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cs{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:22px 24px;transition:border-color .15s}
+  .cs:hover{border-color:var(--accent);text-decoration:none}
+  .cs .cat{font-size:11px;font-weight:750;letter-spacing:.8px;text-transform:uppercase;
+    color:var(--accent);margin:0 0 8px}
+  .cs h3{margin:0 0 8px;font-size:17.5px}
+  .cs p{margin:0 0 12px;font-size:14px;color:var(--ink2)}
+  .cs .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .cs .tag{font-size:11.5px;font-family:var(--mono);color:var(--ink3);
+    background:var(--accent-dim);border-radius:3px;padding:2px 8px}
+  .cs .more{font-size:13px;font-weight:650;color:var(--accent)}
+
+  .about{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:24px 28px;margin:44px 0 0;font-size:15px}
+  .about p{margin:0}
+
+  .foot{border-top:1px solid var(--line);margin-top:56px;padding-top:18px;
+    font-size:13px;color:var(--ink3)}
+  @media (max-width:720px){ .cards{grid-template-columns:1fr} .hero h1{font-size:31px} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap" style="padding-bottom:0">
+    <p class="kicker">Portfolio · AI Systems &amp; Data Engineering</p>
+    <h1>Aleksandra Czepierga</h1>
+    <p class="role">Data Informatics Manager · AI-First Analytics Leader · The Builder</p>
+    <p class="lede">I don't manage a backlog of tickets anymore — I manage agents. This portfolio documents how: production LLM agents that heal themselves, governance that runs as code, and AI whose ROI is a query, not an anecdote. Every case study is real, shipped work — sanitized to architecture and engineering practice.</p>
+    <div class="links">
+      <a class="btn" href="cv.html">Read my CV</a>
+      <a href="https://www.linkedin.com/in/aczepierga/">LinkedIn</a><span>·</span>
+      <a href="https://github.com/alcz86">GitHub</a><span>·</span>
+      <a href="mailto:aleksandra@czepierga.pl">aleksandra@czepierga.pl</a><span>·</span>
+      <span>Katowice, Poland</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <p class="arc"><b>BUILD</b> → <b>GOVERN</b> → <b>MEASURE</b> → <b>OPERATE</b> — one thesis, four case studies</p>
+  <h2>Case studies</h2>
+
+  <div class="cards">
+    <a class="cs" href="self-healing-triage-agent.html">
+      <p class="cat">Build · flagship</p>
+      <h3>A Self-Healing AI Triage Agent That Files Its Own Fix-PRs</h3>
+      <p>An always-on LLM agent that answers data-support tickets read-only — and closes its own operational loop: it detects recurring failures, diagnoses the cause, and opens a pull request with the fix. Merge is the only human action left.</p>
+      <div class="tags"><span class="tag">Claude Code</span><span class="tag">Python · 62 tests</span><span class="tag">git worktrees</span><span class="tag">watchdogs</span></div>
+      <p class="more" style="margin:12px 0 0">Read the case study →</p>
+    </a>
+
+    <a class="cs" href="sql-governance-validator.html">
+      <p class="cat">Govern</p>
+      <h3>Governance-as-Code: Validating SQL Against the Metadata Catalog</h3>
+      <p>Paste any query, get two machine-checked verdicts: are the source tables governed, and do the metric formulas match their certified definitions. Trust checking as a one-paste, deterministic operation.</p>
+      <div class="tags"><span class="tag">sqlglot</span><span class="tag">OpenMetadata</span><span class="tag">FastAPI</span><span class="tag">0 LLM calls in the SQL path</span></div>
+      <p class="more" style="margin:12px 0 0">Read the case study →</p>
+    </a>
+
+    <a class="cs" href="ai-workflow-measurement.html">
+      <p class="cat">Measure</p>
+      <h3>AI ROI Is a Query, Not an Anecdote</h3>
+      <p>A measurement framework where every AI workflow — agent, script, automation, report — logs cost, quality, volume, and ROI through a one-import logger into one central warehouse table, with alert rules on regressions.</p>
+      <div class="tags"><span class="tag">Python logger</span><span class="tag">one schema, 4 workflow types</span><span class="tag">dual-write + JSONL fallback</span></div>
+      <p class="more" style="margin:12px 0 0">Read the case study →</p>
+    </a>
+
+    <a class="cs" href="cost-aware-agent-operations.html">
+      <p class="cat">Operate</p>
+      <h3>Cost-Aware Agent Operations: Same Model, Different Invoice</h3>
+      <p>When LLM billing split into flat-rate vs. metered paths, invocation became an architecture decision. A decision tree, four subscription-safe patterns, an audit — and the policy encoded as an agent skill the AI applies to itself.</p>
+      <div class="tags"><span class="tag">FinOps for LLMs</span><span class="tag">policy-as-code</span><span class="tag">$0 marginal default</span></div>
+      <p class="more" style="margin:12px 0 0">Read the case study →</p>
+    </a>
+  </div>
+
+  <div class="about">
+    <p><strong>The through-line:</strong> AI systems earn trust the same way any production system does — engineering discipline. Judgment lives in the model; guarantees live in tested, deterministic code. Failures are structured data, not surprises. Permission changes stay human-gated. Cost is a design constraint, not an afterthought. And everything — including the AI itself — gets measured.</p>
+  </div>
+
+  <div class="foot">Aleksandra Czepierga · <a href="cv.html">CV</a> · <a href="https://www.linkedin.com/in/aczepierga/">LinkedIn</a> · <a href="https://github.com/alcz86">GitHub</a> · All case studies describe real shipped systems, sanitized to architecture and engineering practices.</div>
+
+</div>
+</body>
+</html>
