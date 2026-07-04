@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study — A Self-Healing AI Triage Agent That Files Its Own Fix-PRs</title>
+<style>
+  :root{
+    --ink:#1a1f2e; --ink2:#4a5163; --ink3:#767d90;
+    --line:#e3e5ea; --bg:#fafafc; --card:#ffffff;
+    --accent:#3b5bdb; --accent-dim:#eef1fc;
+    --good:#2b8a3e; --warn:#c05e00;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#e8eaf0; --ink2:#b3b9c9; --ink3:#8a91a3;
+      --line:#2c3040; --bg:#14161e; --card:#1b1e29;
+      --accent:#7a95f5; --accent-dim:#232941;
+      --good:#69c179; --warn:#e8965a;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink2);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:0 28px 80px}
+  h1,h2,h3,h4{color:var(--ink);line-height:1.2;font-weight:700}
+
+  /* hero */
+  .hero{border-bottom:1px solid var(--line);padding:64px 0 40px;margin-bottom:8px}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:2.5px;font-size:12px;
+    text-transform:uppercase;margin:0 0 16px}
+  .hero h1{font-size:38px;margin:0 0 18px;letter-spacing:-.5px}
+  .hero .lede{font-size:19px;max-width:780px;margin:0 0 26px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{font-size:12.5px;font-family:var(--mono);color:var(--ink2);
+    background:var(--card);border:1px solid var(--line);border-radius:4px;padding:3px 10px}
+
+  h2{font-size:25px;margin:52px 0 10px}
+  h2 .no{color:var(--accent);font-family:var(--mono);font-size:15px;
+    vertical-align:middle;margin-right:10px}
+  .sub{margin:0 0 20px;max-width:800px}
+  p{margin:0 0 14px}
+  strong{color:var(--ink)}
+
+  /* stat tiles — values wear ink, not accent */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
+  .stat .v{font-size:30px;font-weight:750;color:var(--ink);letter-spacing:-.5px}
+  .stat .l{font-size:13px;font-weight:650;color:var(--ink);margin:2px 0 3px}
+  .stat .d{font-size:12.5px;color:var(--ink3);line-height:1.45}
+
+  /* cards */
+  .card{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:20px 24px;margin:0 0 14px}
+  .card.plain{border-left-color:var(--line)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 14px}
+  .grid2 .card{margin:0}
+  .card h4{margin:0 0 6px;font-size:15.5px}
+  .card p{font-size:14.5px;margin:0}
+  .pill{display:inline-block;font-size:11px;font-weight:750;letter-spacing:.7px;
+    text-transform:uppercase;color:var(--accent);background:var(--accent-dim);
+    border-radius:3px;padding:3px 9px;margin:0 0 8px}
+
+  /* flow diagram */
+  .flow{display:flex;align-items:stretch;flex-wrap:wrap;gap:0;margin:18px 0 10px}
+  .flow .step{flex:1 1 140px;background:var(--card);border:1px solid var(--line);
+    border-top:3px solid var(--accent);border-radius:6px;padding:13px 15px;min-width:140px}
+  .flow .step .n{font-family:var(--mono);color:var(--accent);font-weight:700;font-size:12px}
+  .flow .step h4{margin:4px 0 4px;font-size:14.5px}
+  .flow .step p{font-size:12.8px;margin:0;color:var(--ink3)}
+  .flow .arr{align-self:center;color:var(--ink3);font-size:19px;padding:0 7px}
+  .flow .step.gate{border-top-color:var(--warn)}
+  .flow .step.gate .n{color:var(--warn)}
+
+  /* loop callout */
+  .loop{border:1px solid var(--line);border-radius:10px;background:var(--card);
+    padding:26px 28px;margin:20px 0 18px}
+  .loop h3{margin:0 0 4px;font-size:18px}
+  .loop .why{font-size:13.5px;color:var(--ink3);margin:0 0 16px}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0 24px;font-size:14.5px}
+  th{text-align:left;color:var(--ink);font-size:12.5px;text-transform:uppercase;
+    letter-spacing:.8px;padding:9px 14px;border-bottom:2px solid var(--line)}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+  code{font-family:var(--mono);font-size:13px;background:var(--accent-dim);
+    border-radius:3px;padding:1px 6px;color:var(--ink)}
+  ul{margin:0 0 14px;padding-left:22px}
+  li{margin:0 0 8px;font-size:15px}
+  li::marker{color:var(--accent)}
+
+  .cv{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:24px 28px;margin:18px 0}
+  .cv li{font-size:14.8px;margin-bottom:12px}
+
+  .foot{border-top:1px solid var(--line);margin-top:56px;padding-top:18px;
+    font-size:13px;color:var(--ink3)}
+
+  @media (max-width:760px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .grid2{grid-template-columns:1fr}
+    .hero h1{font-size:30px}
+    .flow{flex-direction:column}
+    .flow .arr{transform:rotate(90deg);align-self:flex-start;padding:2px 0 2px 22px}
+  }
+  @media print{
+    body{background:#fff}
+    .hero{padding-top:24px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap" style="padding-bottom:0">
+    <p class="kicker">Case Study · AI Systems Engineering</p>
+    <h1>A Self-Healing AI Triage Agent That Files Its Own Fix-PRs</h1>
+    <p class="lede">An always-on LLM agent that answers a data team's support tickets with sourced, read-only investigations — and closes its own operational loop: it detects recurring failures in how it runs, diagnoses the root cause, and opens a pull request with the fix. The only human action left is reviewing a diff.</p>
+    <div class="meta">
+      <span class="tag">Python (pure stdlib core)</span>
+      <span class="tag">Claude Code agent skills</span>
+      <span class="tag">Jira + Confluence REST</span>
+      <span class="tag">BigQuery</span>
+      <span class="tag">git worktrees + GitHub CLI</span>
+      <span class="tag">launchd</span>
+      <span class="tag">TDD</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">62</div><div class="l">Unit tests</div><div class="d">TDD'd deterministic core — injected clocks, runners, and notifiers.</div></div>
+      <div class="stat"><div class="v">3</div><div class="l">Failure modes watched</div><div class="d">Down, stuck on a prompt, stale (looping but not working).</div></div>
+      <div class="stat"><div class="v">&le;15 min</div><div class="l">Silent-failure MTTR</div><div class="d">Watchdog cadence — down from "whenever a human notices".</div></div>
+      <div class="stat"><div class="v">$0</div><div class="l">Marginal cost / ticket</div><div class="d">Runs as an interactive flat-rate session, never metered API calls.</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2><span class="no">01</span>The problem</h2>
+  <p class="sub">Support tickets landing in a data-team queue each waited hours for an analyst to pick them up, re-trace the same lineage and metric questions by hand, and reply — and a meaningful share turned out to be already-answered or mis-scoped. The goal: give every ticket a correct, sourced first response in minutes, without granting an AI system any write access to production data.</p>
+  <p>The second, more interesting problem appeared after launch: an <strong>always-on agent is an operations liability</strong>. It can die, hang on an interactive prompt, or keep looping while silently doing nothing. Babysitting it would erase the time it saved. So reliability — and eventually <strong>self-remediation</strong> — became first-class features, not afterthoughts.</p>
+
+  <h2><span class="no">02</span>Architecture — judgment in the LLM, guarantees in code</h2>
+  <p class="sub">The design principle throughout: the LLM does the open-ended reasoning; everything that must be <em>correct every time</em> is deterministic, unit-tested Python with no model in the path.</p>
+
+  <div class="grid2">
+    <div class="card"><span class="pill">LLM layer</span>
+      <h4>Two agent skills</h4>
+      <p>A thin <strong>scanner</strong> (detect → dedupe → dispatch, polled every 5 minutes) and a <strong>brain</strong> (classify → investigate → draft → post), one sub-agent per ticket. Prompts encode an investigation discipline, not answers.</p>
+    </div>
+    <div class="card"><span class="pill">Deterministic core</span>
+      <h4>Pure-stdlib Python modules</h4>
+      <p>Config, normalization, classification gates, dedupe/state, heartbeat, incident log, remediation, PR authoring — 62 tests, no network or clock in test paths (both injected).</p>
+    </div>
+  </div>
+
+  <p>Investigations follow a <strong>knowledge ladder</strong> — cheapest and most authoritative first:</p>
+  <div class="flow">
+    <div class="step"><div class="n">FIRST</div><h4>Canonical docs</h4><p>The team's Confluence knowledge base and prior Q&amp;A.</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step gate"><div class="n">REQUIRED</div><h4>Metadata catalog</h4><p>Confirms the real table, column, owner, and certified status — the agent never invents a field.</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step"><div class="n">LAST</div><h4>Live warehouse</h4><p>BigQuery, read-only, to confirm a number or trace a pipeline.</p></div>
+  </div>
+
+  <div class="card plain">
+    <p><span class="pill">Guardrails</span> <strong>Read-only</strong> on production (SELECT + a ticket comment, nothing else) · <strong>idempotent</strong> — a state file plus a stable bot marker on comments means it can never double-answer · <strong>confidence-eject</strong> — it routes to a human instead of guessing · full per-ticket <strong>audit trail</strong> of every run · multi-turn: it asks a clarifying question and resumes when the reporter replies.</p>
+  </div>
+
+  <h2><span class="no">03</span>Making an always-on agent trustworthy</h2>
+  <p class="sub">Reliability was built as a ladder — each rung removes a class of human toil.</p>
+  <table>
+    <thead><tr><th>Rung</th><th>Capability</th><th>How</th></tr></thead>
+    <tbody>
+      <tr><td>Do the work</td><td>Answer tickets unattended</td><td>Agent loop + permission allowlist for pre-approved read-only commands.</td></tr>
+      <tr><td>Know it's broken</td><td>Detect all three silent-failure modes</td><td>A watchdog (launchd, every 15 min) checks the session is <em>up</em>, not <em>stuck</em> on an approval prompt, and not <em>stale</em> — a per-scan heartbeat file proves work is actually completing, not just that the process exists.</td></tr>
+      <tr><td>Alert like a grown-up</td><td>One page per incident, ever</td><td>Edge-triggered alerting with a recovery ping — no alert storms. Every incident is also logged with a <strong>signature</strong> (failure class + offending command), which turns outages into queryable data.</td></tr>
+      <tr><td>Recover</td><td>Return to last-known-good nightly</td><td>A scheduled clean restart clears accumulated context and reloads config. (Includes the classic launchd lesson: pin <code>PATH</code> explicitly — the minimal daemon environment resolves nothing.)</td></tr>
+      <tr><td><strong>Fix the cause</strong></td><td><strong>Ship its own fix as a PR</strong></td><td>The full loop — below.</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">04</span>The full loop — the agent repairs its own operation</h2>
+  <p class="sub">The most common recurring failure: the agent invokes a command that isn't in its unattended-permission allowlist, hits an approval prompt, and freezes — every run, until a human notices, diagnoses it, writes the allowlist rule, and applies it. That whole chain is now automated except the one step that <em>should</em> stay human: approving a security change.</p>
+
+  <div class="loop">
+    <h3>Detect &rarr; diagnose &rarr; author the fix &rarr; human merges</h3>
+    <p class="why">Deterministic end to end — the remediation path is pure stdlib, with no LLM anywhere in it.</p>
+    <div class="flow">
+      <div class="step"><div class="n">1</div><h4>Detect &amp; classify</h4><p>Watchdog logs each freeze as an incident with a signature: failure class + exact command.</p></div>
+      <div class="arr">&rarr;</div>
+      <div class="step"><div class="n">2</div><h4>Recurrence gate</h4><p>Same signature &ge;2&times; within 7 days, not already allowlisted, not already proposed.</p></div>
+      <div class="arr">&rarr;</div>
+      <div class="step"><div class="n">3</div><h4>Author the fix-PR</h4><p>The bot derives the exact allowlist rule and opens its own pull request adding it.</p></div>
+      <div class="arr">&rarr;</div>
+      <div class="step gate"><div class="n">4 · GATE</div><h4>Human merges</h4><p>Merge = approval. The rule syncs to the host on the nightly restart; the bot reloads it.</p></div>
+    </div>
+  </div>
+
+  <p>The interesting engineering is in step 3 — a watchdog that writes code into a repo a live agent is running from has to be paranoid:</p>
+  <ul>
+    <li><strong>Isolated git worktree.</strong> The PR is authored in a throwaway worktree, never in the live tree the agent loops in — an in-flight scan is untouched.</li>
+    <li><strong>Deterministic branch names.</strong> The branch is a hash of the rule, not a timestamp — so a repeat detection force-pushes the same branch and <em>reuses</em> the existing PR instead of opening duplicates. Idempotency by construction.</li>
+    <li><strong>Injected runner, per-call timeouts.</strong> Every git/gh call goes through an injectable subprocess wrapper with a 60s timeout — the watchdog can never hang on a network stall, and the whole flow is testable without touching git.</li>
+    <li><strong>Graceful degradation.</strong> Any failure (no <code>gh</code>, offline, auth expired) returns <code>ok=False</code> and the system falls back to its previous behavior — a chat message with the manual one-liner. Adding the new capability could not make the old one worse.</li>
+    <li><strong>The gitignored-config problem.</strong> The live allowlist lives in a machine-local, gitignored settings file a PR can't touch. Solution: the PR edits a <em>tracked ledger</em> file instead, and a sync script — run by the nightly restart after it pulls — copies merged ledger rules into the local settings. The audit trail lives in git; the secret-adjacent file stays local.</li>
+    <li><strong>Propose, never auto-apply.</strong> An allowlist rule widens what the agent may run unattended — a permission change. Those stay human-gated <em>by design</em>; a reviewable diff with merge-as-approval beats both silent auto-writes and "please run this script" pings.</li>
+  </ul>
+
+  <h2><span class="no">05</span>Engineering practices worth stealing</h2>
+  <div class="grid2">
+    <div class="card plain"><h4>TDD with injected effects</h4><p>Clock, subprocess runner, and notifier are all parameters. 62 tests cover the deterministic core — including the PR-authoring flow, tested with a fake runner and zero real git.</p></div>
+    <div class="card plain"><h4>Idempotency everywhere</h4><p>Comment markers, state files, proposal dedup, hash-derived branch names. Every action is safe to repeat — mandatory when a scheduler and an agent share a system.</p></div>
+    <div class="card plain"><h4>Incidents as data</h4><p>Failures aren't just alerts — they're structured, signed records. Recurrence detection, dedup, and remediation are all simple queries over that log.</p></div>
+    <div class="card plain"><h4>Cost-aware runtime</h4><p>The agent runs as an interactive flat-rate session rather than metered API/headless SDK calls — zero marginal cost per ticket and no runaway-spend failure mode.</p></div>
+  </div>
+
+  <h2><span class="no">06</span>Outcomes</h2>
+  <ul>
+    <li>First response on data tickets: <strong>hours &rarr; minutes</strong>, with every answer citing the doc and catalog entry behind it — including catching requests for work that was already done.</li>
+    <li>Silent-failure MTTR: <strong>unbounded &rarr; &le;15 minutes</strong>, with exactly one page per incident.</li>
+    <li>Recurring operational failures: <strong>investigate-and-patch by hand &rarr; review a bot-authored PR</strong>.</li>
+    <li>Marginal cost per ticket: <strong>$0</strong>; blast radius bounded at "a ticket comment" by construction.</li>
+  </ul>
+
+  <h2><span class="no">07</span>CV-ready summary</h2>
+  <div class="cv">
+    <ul>
+      <li>Designed and built an always-on <strong>LLM ticket-triage agent</strong> (Claude Code + Python) that investigates data-support tickets read-only against docs, a metadata catalog, and BigQuery, and posts sourced advisory answers — cutting first response from hours to minutes at zero marginal cost.</li>
+      <li>Engineered its <strong>reliability layer</strong>: a launchd watchdog detecting three silent-failure modes (down / stuck / stale-heartbeat) with edge-triggered alerting and nightly last-known-good restarts — silent-failure MTTR bounded at 15 minutes.</li>
+      <li>Closed the <strong>self-remediation loop</strong>: on recurring failures the system diagnoses the root cause and opens its own fix pull request — authored in an isolated git worktree with hash-deterministic branches (idempotent), per-call timeouts, and graceful fallback — keeping the human in the loop only as PR reviewer for permission changes.</li>
+      <li>Built the deterministic core <strong>test-first</strong> (62 unit tests; injected clocks, runners, notifiers) with idempotency guarantees across every side effect.</li>
+    </ul>
+  </div>
+
+  <div class="foot">Personal portfolio case study · All identifiers, data, and business specifics removed; architecture and engineering practices only.</div>
+
+</div>
+</body>
+</html>
