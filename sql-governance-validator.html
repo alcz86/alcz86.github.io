@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study — Governance-as-Code: Validating SQL Against the Metadata Catalog</title>
+<style>
+  :root{
+    --ink:#1a1f2e; --ink2:#4a5163; --ink3:#767d90;
+    --line:#e3e5ea; --bg:#fafafc; --card:#ffffff;
+    --accent:#3b5bdb; --accent-dim:#eef1fc;
+    --good:#2b8a3e; --warn:#c05e00; --bad:#c92a2a;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#e8eaf0; --ink2:#b3b9c9; --ink3:#8a91a3;
+      --line:#2c3040; --bg:#14161e; --card:#1b1e29;
+      --accent:#7a95f5; --accent-dim:#232941;
+      --good:#69c179; --warn:#e8965a; --bad:#e06c75;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink2);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:0 28px 80px}
+  h1,h2,h3,h4{color:var(--ink);line-height:1.2;font-weight:700}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+
+  .hero{border-bottom:1px solid var(--line);padding:64px 0 40px;margin-bottom:8px}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:2.5px;font-size:12px;
+    text-transform:uppercase;margin:0 0 16px}
+  .hero h1{font-size:36px;margin:0 0 18px;letter-spacing:-.5px}
+  .hero .lede{font-size:19px;max-width:780px;margin:0 0 26px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{font-size:12.5px;font-family:var(--mono);color:var(--ink2);
+    background:var(--card);border:1px solid var(--line);border-radius:4px;padding:3px 10px}
+
+  h2{font-size:25px;margin:52px 0 10px}
+  h2 .no{color:var(--accent);font-family:var(--mono);font-size:15px;vertical-align:middle;margin-right:10px}
+  .sub{margin:0 0 20px;max-width:800px}
+  p{margin:0 0 14px}
+  strong{color:var(--ink)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
+  .stat .v{font-size:30px;font-weight:750;color:var(--ink);letter-spacing:-.5px}
+  .stat .l{font-size:13px;font-weight:650;color:var(--ink);margin:2px 0 3px}
+  .stat .d{font-size:12.5px;color:var(--ink3);line-height:1.45}
+
+  .card{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:20px 24px;margin:0 0 14px}
+  .card.plain{border-left-color:var(--line)}
+  .pill{display:inline-block;font-size:11px;font-weight:750;letter-spacing:.7px;
+    text-transform:uppercase;color:var(--accent);background:var(--accent-dim);
+    border-radius:3px;padding:3px 9px;margin:0 0 8px}
+
+  .flow{display:flex;align-items:stretch;flex-wrap:wrap;gap:0;margin:18px 0 10px}
+  .flow .step{flex:1 1 140px;background:var(--card);border:1px solid var(--line);
+    border-top:3px solid var(--accent);border-radius:6px;padding:13px 15px;min-width:140px}
+  .flow .step .n{font-family:var(--mono);color:var(--accent);font-weight:700;font-size:12px}
+  .flow .step h4{margin:4px 0 4px;font-size:14.5px}
+  .flow .step p{font-size:12.8px;margin:0;color:var(--ink3)}
+  .flow .arr{align-self:center;color:var(--ink3);font-size:19px;padding:0 7px}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0 24px;font-size:14.5px}
+  th{text-align:left;color:var(--ink);font-size:12.5px;text-transform:uppercase;
+    letter-spacing:.8px;padding:9px 14px;border-bottom:2px solid var(--line)}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  code{font-family:var(--mono);font-size:13px;background:var(--accent-dim);
+    border-radius:3px;padding:1px 6px;color:var(--ink)}
+  ul{margin:0 0 14px;padding-left:22px}
+  li{margin:0 0 8px;font-size:15px}
+  li::marker{color:var(--accent)}
+  .verdict{display:inline-block;font-size:12px;font-weight:750;border-radius:12px;padding:2px 11px;white-space:nowrap}
+  .verdict.ok{color:var(--good);background:color-mix(in srgb,var(--good) 12%,transparent)}
+  .verdict.warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent)}
+  .verdict.bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent)}
+  .foot{border-top:1px solid var(--line);margin-top:56px;padding-top:18px;font-size:13px;color:var(--ink3)}
+  @media (max-width:760px){ .stats{grid-template-columns:repeat(2,1fr)} .hero h1{font-size:29px}
+    .flow{flex-direction:column} .flow .arr{transform:rotate(90deg);align-self:flex-start;padding:2px 0 2px 22px} }
+  @media print{ body{background:#fff} .hero{padding-top:24px} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap" style="padding-bottom:0">
+    <p class="kicker">Case Study · Data Governance Engineering</p>
+    <h1>Governance-as-Code: Validating SQL Against the Metadata Catalog</h1>
+    <p class="lede">A web app where anyone pastes a SQL query — or the URL of a running data app — and gets two machine-checked verdicts: <em>are the source tables governed?</em> and <em>do the metric formulas match their certified definitions?</em> It turns "is this number trustworthy?" from a half-day manual investigation into a one-paste check.</p>
+    <div class="meta">
+      <span class="tag">Python + FastAPI</span>
+      <span class="tag">sqlglot (AST parsing)</span>
+      <span class="tag">OpenMetadata REST</span>
+      <span class="tag">cloud data-platform app</span>
+      <span class="tag">LLM only where it belongs</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">2</div><div class="l">Validation stages</div><div class="d">Table governance, then metric-formula drift.</div></div>
+      <div class="stat"><div class="v">18</div><div class="l">Physical copies, one name</div><div class="d">Worst observed fan-out for a single logical table — resolved and ranked in one catalog call.</div></div>
+      <div class="stat"><div class="v">0</div><div class="l">LLM calls in the SQL path</div><div class="d">Deterministic parsing; verdicts are reproducible.</div></div>
+      <div class="stat"><div class="v">3</div><div class="l">Input modes</div><div class="d">Raw SQL, a live app's URL, or analytics prose.</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2><span class="no">01</span>The problem — the gold star that lies politely</h2>
+  <p class="sub">Every data org trusts its "golden datasets": certified tables and metrics that someone, at some point, declared correct. Keyword: <em>at some point</em>. Schemas change, metrics get redefined, logic quietly moves — and the certification badge keeps glowing. A query written six months ago keeps aggregating yesterday's formula over today's data, with full confidence.</p>
+  <p>Checking whether a given query is actually aligned with the catalog meant a manual investigation: trace each source table's lineage, find the certified metric definition, compare formulas by eye. Nobody does that for every dashboard — so drift accumulates silently. The fix isn't more certification; it's making the check <strong>cheap enough to run every time</strong>.</p>
+
+  <h2><span class="no">02</span>The two-stage check</h2>
+  <div class="flow">
+    <div class="step"><div class="n">INPUT</div><h4>SQL / URL / prose</h4><p>A query, a running data app's URL, or an analytics claim.</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step"><div class="n">PARSE</div><h4>AST extraction</h4><p>sqlglot pulls source tables (FROM/JOIN, CTEs excluded) and aliased aggregates.</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step"><div class="n">STAGE 1</div><h4>Table governance</h4><p>Is each source table an asset of a catalog data product?</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step"><div class="n">STAGE 2</div><h4>Metric drift</h4><p>Does each formula match its certified definition?</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step"><div class="n">OUTPUT</div><h4>Verdicts + links</h4><p>Per-table and per-metric, each linked back to the catalog entry.</p></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Stage</th><th>Verdict</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3">Table governance</td><td><span class="verdict ok">governed</span></td><td>The table is an asset of ≥1 data product — a trusted source.</td></tr>
+      <tr><td><span class="verdict warn">ungoverned</span></td><td>In the catalog, but owned by no data product.</td></tr>
+      <tr><td><span class="verdict bad">not in catalog</span></td><td>No registered table by that name at all.</td></tr>
+      <tr><td rowspan="3">Metric correctness</td><td><span class="verdict ok">match</span></td><td>The query's formula equals the certified definition (after normalization).</td></tr>
+      <tr><td><span class="verdict warn">drift</span></td><td>Formulas differ — the certified formula is shown so the author can fix it.</td></tr>
+      <tr><td><span class="verdict bad">uncertified</span></td><td>No certified definition exists for that metric name.</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="no">03</span>The hard part — one table name, many physical tables</h2>
+  <p class="sub">In a real data platform a logical table name resolves to <em>many</em> physical copies: warehouse views, ETL staging layers, per-project clones. The worst case observed: one name → <strong>18 fully-qualified names</strong> across platforms, where exactly one copy was governed.</p>
+  <div class="card">
+    <p><span class="pill">Resolution strategy</span> The validator ranks all copies in a <strong>single catalog search call</strong> — data-product membership rides along in the search response, so no per-copy lookups are needed. It prefers the governed copy by default, pins the exact copy when the query names a schema qualifier, and — the genuinely useful move — when the query reads an <strong>ungoverned copy that has a governed equivalent</strong>, it tells the author which fully-qualified name to read from instead. The verdict isn't just "bad"; it's "here's the good one."</p>
+  </div>
+
+  <h2><span class="no">04</span>Deterministic by design — the LLM only where it belongs</h2>
+  <ul>
+    <li><strong>The SQL path has no model in it.</strong> Parsing is a sqlglot AST walk; formula comparison is normalization + equality. Same input, same verdict, every time — a governance tool that hallucinated governance would be worse than none.</li>
+    <li><strong>The prose path is where the LLM earns its keep.</strong> Paste analytics text with a claimed number, and an LLM extracts the claim — then the deterministic engine recomputes it from the certified source and reconciles the values. Judgment for extraction, code for the verdict.</li>
+    <li><strong>URL mode closes the loop for deployed apps:</strong> given a running data app's URL, the validator fetches the app's SQL and runs both stages on what's actually deployed — not what the author remembers deploying.</li>
+  </ul>
+
+  <h2><span class="no">05</span>Architecture</h2>
+  <div class="card plain">
+    <p>A Python data app (FastAPI backend + HTML UI) hosted on the team's cloud data platform, git-backed. The metadata catalog (OpenMetadata) is the single source of truth for both stages — table governance and certified formulas come from its REST API, never from a hardcoded list. The app carries no state of its own: catalog changes are reflected on the next paste.</p>
+  </div>
+
+  <h2><span class="no">06</span>Outcomes</h2>
+  <ul>
+    <li>Source-trust checking went from a manual lineage investigation to a <strong>one-paste, seconds-long check</strong> — cheap enough that it actually happens.</li>
+    <li>Caught real metric drift in live queries — including a query aggregating a plausible-but-wrong variant of a certified metric that eyeballing had passed for months.</li>
+    <li>Verdicts are <strong>reproducible and explainable</strong>: every one links to the catalog entry that decided it.</li>
+  </ul>
+
+  <div class="foot">Part of a portfolio: <a href="index.html">all case studies</a> · <a href="self-healing-triage-agent.html">the self-healing triage agent</a> investigates tickets against the same catalog this tool validates queries against. All identifiers and business specifics removed; architecture and engineering practices only.</div>
+
+</div>
+</body>
+</html>
