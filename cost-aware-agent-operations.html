@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study — Cost-Aware Agent Operations: Same Model, Different Invoice</title>
+<style>
+  :root{
+    --ink:#1a1f2e; --ink2:#4a5163; --ink3:#767d90;
+    --line:#e3e5ea; --bg:#fafafc; --card:#ffffff;
+    --accent:#3b5bdb; --accent-dim:#eef1fc;
+    --good:#2b8a3e; --warn:#c05e00;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#e8eaf0; --ink2:#b3b9c9; --ink3:#8a91a3;
+      --line:#2c3040; --bg:#14161e; --card:#1b1e29;
+      --accent:#7a95f5; --accent-dim:#232941;
+      --good:#69c179; --warn:#e8965a;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink2);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:0 28px 80px}
+  h1,h2,h3,h4{color:var(--ink);line-height:1.2;font-weight:700}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+
+  .hero{border-bottom:1px solid var(--line);padding:64px 0 40px;margin-bottom:8px}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:2.5px;font-size:12px;
+    text-transform:uppercase;margin:0 0 16px}
+  .hero h1{font-size:36px;margin:0 0 18px;letter-spacing:-.5px}
+  .hero .lede{font-size:19px;max-width:780px;margin:0 0 26px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{font-size:12.5px;font-family:var(--mono);color:var(--ink2);
+    background:var(--card);border:1px solid var(--line);border-radius:4px;padding:3px 10px}
+
+  h2{font-size:25px;margin:52px 0 10px}
+  h2 .no{color:var(--accent);font-family:var(--mono);font-size:15px;vertical-align:middle;margin-right:10px}
+  .sub{margin:0 0 20px;max-width:800px}
+  p{margin:0 0 14px}
+  strong{color:var(--ink)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
+  .stat .v{font-size:30px;font-weight:750;color:var(--ink);letter-spacing:-.5px}
+  .stat .l{font-size:13px;font-weight:650;color:var(--ink);margin:2px 0 3px}
+  .stat .d{font-size:12.5px;color:var(--ink3);line-height:1.45}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:18px 22px;margin:0 0 14px}
+  .grid2 .card{margin:0}
+  .card.plain{border-left-color:var(--line)}
+  .card h4{margin:0 0 6px;font-size:15.5px}
+  .card p{font-size:14px;margin:0}
+  .pill{display:inline-block;font-size:11px;font-weight:750;letter-spacing:.7px;
+    text-transform:uppercase;color:var(--accent);background:var(--accent-dim);
+    border-radius:3px;padding:3px 9px;margin:0 0 8px}
+
+  pre{background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:12.8px;
+    line-height:1.6;color:var(--ink);margin:0 0 14px}
+  code{font-family:var(--mono);font-size:13px;background:var(--accent-dim);
+    border-radius:3px;padding:1px 6px;color:var(--ink)}
+  pre code{background:none;padding:0}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0 24px;font-size:14.5px}
+  th{text-align:left;color:var(--ink);font-size:12.5px;text-transform:uppercase;
+    letter-spacing:.8px;padding:9px 14px;border-bottom:2px solid var(--line)}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  ul{margin:0 0 14px;padding-left:22px}
+  li{margin:0 0 8px;font-size:15px}
+  li::marker{color:var(--accent)}
+  .ok{color:var(--good);font-weight:700}
+  .no-x{color:var(--warn);font-weight:700}
+  .foot{border-top:1px solid var(--line);margin-top:56px;padding-top:18px;font-size:13px;color:var(--ink3)}
+  @media (max-width:760px){ .stats{grid-template-columns:repeat(2,1fr)} .grid2{grid-template-columns:1fr} .hero h1{font-size:29px} }
+  @media print{ body{background:#fff} .hero{padding-top:24px} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap" style="padding-bottom:0">
+    <p class="kicker">Case Study · Platform Economics</p>
+    <h1>Cost-Aware Agent Operations: Same Model, Different Invoice</h1>
+    <p class="lede">When an LLM vendor split billing — interactive sessions on a flat-rate subscription, headless/SDK calls on a metered credit pool — every automation's <em>invocation path</em> became an architecture decision. I turned that into an operating policy, a decision tree, an audit, and finally an executable rule the AI itself applies before building anything.</p>
+    <div class="meta">
+      <span class="tag">runtime policy design</span>
+      <span class="tag">agent skill (policy-as-code)</span>
+      <span class="tag">automation audit</span>
+      <span class="tag">FinOps for LLMs</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">2</div><div class="l">Billing paths</div><div class="d">Flat-rate interactive vs. metered headless — same model, same output.</div></div>
+      <div class="stat"><div class="v">4</div><div class="l">Subscription-safe patterns</div><div class="d">Reusable architectures that keep unattended work on the flat rate.</div></div>
+      <div class="stat"><div class="v">$0</div><div class="l">Marginal cost, default path</div><div class="d">Capacity already paid for; no runaway-spend failure mode.</div></div>
+      <div class="stat"><div class="v">1</div><div class="l">Rule for exceptions</div><div class="d">Flag → confirm → budget. Never "avoid at all costs".</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2><span class="no">01</span>The insight — billing path is an architecture decision</h2>
+  <p class="sub">Mid-2026, our LLM vendor's billing changed: interactive CLI sessions kept drawing from the already-paid subscription, while headless/print-mode invocations and the agent SDK moved to a separately metered credit pool. <strong>Same model, same quality — different invoice.</strong></p>
+  <p>The trap is subtle: an unattended cron job <em>feels</em> free because "it's just the same tool" — but the moment it runs headless, it quietly drains metered credits. Multiply by a team's worth of daily briefs, weekly reports, and always-on agents, and the difference between two functionally identical architectures is a real budget line. So the invocation path stopped being an implementation detail and became a reviewed decision.</p>
+
+  <h2><span class="no">02</span>The decision tree</h2>
+  <p class="sub">Every new automation passes through this gate before it's scaffolded:</p>
+  <pre><code>1. Does it need to run unattended (cron / queue / trigger)?
+   NO  → interactive session. Done.               ✅ FLAT-RATE
+   YES ↓
+
+2. Can it run as an INTERACTIVE session on a schedule?
+   (loop-command + subagents · always-on host ·
+    scheduled cloud session · CI runner launching interactive)
+   YES → use one of those patterns.               ✅ FLAT-RATE  ← default
+   NO  ↓
+
+3. Is there a HARD constraint forcing headless/SDK?
+   (must embed inside a service · sandboxed non-interactive env ·
+    org-mandated production substrate for service agents)
+   NO  → back to 2 — you don't need metered.
+   YES ↓
+
+4. Metered is justified — but never silently:
+   ⚠ FLAG the credit cost before building at scale
+   ⚠ CONFIRM with the budget owner
+   ⚠ ROUTE through the central LLM gateway
+   ⚠ BUDGET it deliberately (per-team caps)</code></pre>
+
+  <h2><span class="no">03</span>Four subscription-safe patterns</h2>
+  <div class="grid2">
+    <div class="card"><span class="pill">Pattern 1</span>
+      <h4>Loop + subagents</h4>
+      <p>One long-lived interactive session polls on a loop command and dispatches one subagent per work item. The workhorse pattern — it powers the <a href="self-healing-triage-agent.html">always-on triage agent</a>.</p>
+    </div>
+    <div class="card"><span class="pill">Pattern 2</span>
+      <h4>Always-on interactive host</h4>
+      <p>A scheduler (launchd) + terminal multiplexer + sleep-prevention keep the interactive session alive 24/7 — "always-on service" semantics without an SDK service.</p>
+    </div>
+    <div class="card"><span class="pill">Pattern 3</span>
+      <h4>Scheduled cloud session</h4>
+      <p>The vendor's scheduled-routine feature runs an interactive session in the cloud on cron — laptop-independent weekly reports without going headless.</p>
+    </div>
+    <div class="card"><span class="pill">Pattern 4</span>
+      <h4>CI runner, interactive mode</h4>
+      <p>A CI workflow step that launches the <em>interactive</em> CLI (not print mode) — team-hosted automation on shared runners, still on the flat rate.</p>
+    </div>
+  </div>
+
+  <h2><span class="no">04</span>Not dogma — when metered is right</h2>
+  <p class="sub">A cost policy that just says "never" gets routed around. Metered is the correct choice when the agent must live <em>inside</em> a running service (a subprocess CLI is the wrong architecture there), or when an automation graduates onto the org's mandated production substrate. In those cases the rule is <strong class="ok">flag → confirm → budget</strong>, not <strong class="no-x">avoid</strong> — the failure mode being prevented is <em>silent</em> spend, not spend.</p>
+
+  <h2><span class="no">05</span>Policy-as-code — the AI applies its own cost rules</h2>
+  <div class="card">
+    <p><span class="pill">The interesting part</span> The policy isn't a wiki page; it's an <strong>agent skill</strong> — a machine-readable decision gate the AI assistant itself invokes whenever anyone asks it to build an automation, schedule a job, or make something run unattended. The skill outputs a verdict (<code>FLAT-RATE</code> or <code>METERED</code>), the decision-tree node that decided it, the concrete pattern to use, and — for metered — the flag-and-confirm ask. Governance that lives where the work happens can't be forgotten; the tool that would create the spend is the tool that enforces the policy.</p>
+  </div>
+  <p>The policy also shipped with an <strong>audit</strong> of existing automations: every cron, CI workflow, and scheduled routine was checked for headless invocations, and each hit either moved to a subscription-safe pattern or had its credit budget made explicit and intentional.</p>
+
+  <h2><span class="no">06</span>Outcomes</h2>
+  <ul>
+    <li>Default automation path has <strong>zero marginal cost</strong> and — structurally — no runaway-spend failure mode.</li>
+    <li>Every metered exception is <strong>flagged, confirmed, and budgeted</strong> before it exists; silent credit drain eliminated by construction.</li>
+    <li>The one-liner that stuck in reviews: <em>"Default to interactive loop + subagents on the flat rate; go headless only when a hard constraint forces it — and flag the cost first."</em></li>
+  </ul>
+
+  <div class="foot">Part of a portfolio: <a href="index.html">all case studies</a> · this policy is why the <a href="self-healing-triage-agent.html">triage agent</a> runs at $0 marginal cost. All identifiers and business specifics removed; architecture and engineering practices only.</div>
+
+</div>
+</body>
+</html>
