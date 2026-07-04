@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aleksandra Czepierga — AI-First Engineering Manager · CV</title>
+<style>
+  :root{
+    --ink:#1a1f2e; --ink2:#4a5163; --ink3:#767d90;
+    --line:#e3e5ea; --bg:#fafafc; --card:#ffffff;
+    --accent:#3b5bdb; --accent-dim:#eef1fc;
+    --todo:#c05e00; --todo-bg:#fdf1e3;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#e8eaf0; --ink2:#b3b9c9; --ink3:#8a91a3;
+      --line:#2c3040; --bg:#14161e; --card:#1b1e29;
+      --accent:#7a95f5; --accent-dim:#232941;
+      --todo:#e8965a; --todo-bg:#2e2417;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink2);
+    font:15.5px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:0 28px 70px}
+  h1,h2,h3{color:var(--ink);line-height:1.2}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  .hero{border-bottom:1px solid var(--line);padding:56px 0 30px;margin-bottom:6px}
+  .hero h1{font-size:34px;margin:0 0 6px;letter-spacing:-.5px}
+  .hero .role{font-size:19px;color:var(--accent);font-weight:650;margin:0 0 14px}
+  .hero .lede{max-width:760px;margin:0 0 18px}
+  .links{display:flex;flex-wrap:wrap;gap:10px;font-size:13.5px}
+  .links span{color:var(--ink3)}
+
+  h2{font-size:20px;margin:40px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+  h2 .no{color:var(--accent);font-family:var(--mono);font-size:13px;margin-right:9px}
+
+  .todo{font-family:var(--mono);font-size:12px;color:var(--todo);background:var(--todo-bg);
+    border-radius:3px;padding:1px 7px;white-space:nowrap}
+
+  /* highlight cards */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:16px 20px}
+  .card h3{margin:0 0 5px;font-size:15px}
+  .card p{font-size:13.8px;margin:0;color:var(--ink2)}
+  .card .ev{display:block;margin-top:7px;font-size:12.8px;color:var(--ink3)}
+
+  /* experience */
+  .job{margin:0 0 26px}
+  .job .head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px}
+  .job h3{margin:0;font-size:17px}
+  .job .co{color:var(--accent);font-weight:650}
+  .job .dates{font-family:var(--mono);font-size:12.5px;color:var(--ink3)}
+  .job .sub{font-size:13.5px;color:var(--ink3);margin:2px 0 8px}
+  ul{margin:6px 0 0;padding-left:20px}
+  li{margin:0 0 7px;font-size:14.5px}
+  li::marker{color:var(--accent)}
+  strong{color:var(--ink)}
+
+  /* skills */
+  .skillrow{display:grid;grid-template-columns:170px 1fr;gap:10px;padding:10px 0;
+    border-bottom:1px solid var(--line);font-size:14.5px}
+  .skillrow:last-child{border-bottom:none}
+  .skillrow .k{font-weight:650;color:var(--ink)}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+  .mini{font-size:14px}
+  .mini li{font-size:13.8px;margin-bottom:5px}
+
+  .foot{border-top:1px solid var(--line);margin-top:48px;padding-top:16px;
+    font-size:12.5px;color:var(--ink3)}
+
+  @media (max-width:720px){ .grid2,.two{grid-template-columns:1fr} .skillrow{grid-template-columns:1fr} }
+  @media print{
+    body{background:#fff;font-size:13px}
+    .hero{padding-top:20px}
+    .todo{display:none}
+    h2{margin-top:24px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap" style="padding-bottom:0">
+    <h1>Aleksandra Czepierga</h1>
+    <p class="role">Data Informatics Manager · AI-First Analytics Leader · The Builder</p>
+    <p class="lede">I rebuilt my own role around AI: I design, ship, and <em>operate</em> LLM agents that do real production work — ticket triage, data-quality monitoring, governance audits — under proper engineering discipline: test-driven deterministic cores, idempotent side effects, watchdogs, and human-gated permission changes. 20+ years in Data &amp; Analytics and 10+ in ML &amp; AI, from BI development through analytics and data science to managing a fleet of agents instead of a backlog of tickets.</p>
+    <div class="links">
+      <a href="https://www.linkedin.com/in/aczepierga/">linkedin.com/in/aczepierga</a><span>·</span>
+      <a href="https://alcz86.github.io/">alcz86.github.io</a><span>·</span>
+      <a href="https://github.com/alcz86">github.com/alcz86</a><span>·</span>
+      <span>Katowice, Poland</span><span>·</span>
+      <a href="mailto:aleksandra@czepierga.pl">aleksandra@czepierga.pl</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2><span class="no">01</span>What AI-first means in my work</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Agent engineering, not prompt tinkering</h3>
+      <p>Always-on LLM agents with deterministic Python cores: judgment in the model, guarantees in tested code. My flagship agent detects its own recurring failures and opens its own fix pull-requests — humans stay in the loop only as reviewers.</p>
+      <span class="ev">→ Case study: <a href="https://alcz86.github.io/self-healing-triage-agent.html">A self-healing triage agent that files its own fix-PRs</a></span>
+    </div>
+    <div class="card">
+      <h3>A governed fleet, not a pile of scripts</h3>
+      <p>100+ custom agent skills under actual QA: a deterministic skill evaluator, a trigger-collision matrix, CI schema validation, and weekly automated governance audits of deployed AI apps.</p>
+    </div>
+    <div class="card">
+      <h3>Measured, not vibes</h3>
+      <p>Built a measurement framework that logs every AI workflow's usage and outcomes (time saved, adoption, cost) into a warehouse table — so AI ROI is a query, not an anecdote.</p>
+    </div>
+    <div class="card">
+      <h3>Cost-aware operations</h3>
+      <p>Designed a subscription-first runtime policy for agent automation: routing work to flat-rate interactive sessions vs. metered API, auditing per-user AI spend, and eliminating runaway-cost failure modes by construction.</p>
+    </div>
+  </div>
+
+  <h2><span class="no">02</span>Experience</h2>
+
+  <div class="job">
+    <div class="head"><h3><span class="co">Groupon</span> — Data Informatics Manager</h3>
+      <span class="dates">Apr 2025 – present</span></div>
+    <p class="sub">Supply Analytics Stream Owner — leading an AI-first analytics team in the Supply &amp; Merchant domain · Katowice, remote</p>
+    <ul>
+      <li>Drive the AI-first transformation of the analytics team: embedding Claude and agentic workflows into day-to-day analytical work, with adoption and savings tracked in a measurement framework I built.</li>
+      <li>Designed and operate an <strong>always-on, self-healing LLM triage agent</strong> (Claude Code + pure-stdlib Python, 62 unit tests): read-only investigations over docs, a metadata catalog, and BigQuery; watchdog covering three silent-failure modes; a self-remediation loop that ships its own fix-PRs with merge as the human gate.</li>
+      <li>Built <strong>governance-as-code</strong> for the data platform: a validator app that parses production SQL (sqlglot) and diffs it against certified metric definitions in the metadata catalog to catch methodology drift; automated weekly audits scoring deployed data apps on cost, security, and discoverability.</li>
+      <li>Created analyst-friendly <strong>AI infrastructure</strong> — skills, prompts, and tooling — under actual QA: deterministic quality grader, trigger-collision matrix across 60+ agent skills, CI schema validation, scheduled evaluation runs.</li>
+      <li>Spearhead <strong>data-platform modernization</strong> (Keboola + BigQuery): customer-LTV and margin metric architecture, self-service data-intake pipelines with validation gates, cross-source data-quality reconciliation monitors, semantic-layer documentation (OSI).</li>
+      <li>Lead end-to-end delivery across multiple workstreams — scope, milestones, resourcing — and mentor analysts in AI-first thinking and modern analytics practice.</li>
+    </ul>
+  </div>
+
+  <div class="job">
+    <div class="head"><h3><span class="co">Groupon</span> — Senior Business Analyst</h3>
+      <span class="dates">Apr 2021 – Apr 2025</span></div>
+    <ul>
+      <li>Supply Analytics stream owner: led analytical and transformation projects, onboarded Keboola as the team's all-in-one data platform, and set new organizational standards during a business transformation.</li>
+      <li>Built Python and SQL pipelines connecting Salesforce and the data warehouse; shipped Python automations that shortened and de-risked significant recurring processes.</li>
+      <li>Owned data-quality controls and pipeline availability for business-critical datasets; researched ML approaches to sharpen analytics.</li>
+      <li>Managed delivery — scope, milestones, task allocation, stakeholder alignment — while mentoring team members.</li>
+    </ul>
+  </div>
+
+  <div class="job">
+    <div class="head"><h3><span class="co">Groupon</span> — Senior Business Intelligence Analyst</h3>
+      <span class="dates">May 2019 – Apr 2021</span></div>
+    <ul>
+      <li>Empowered data consumers with Tableau, the Elastic Stack, Hadoop, SQL, and Python — from exploratory and descriptive analysis through machine-learning models to prescriptive analytics.</li>
+      <li>Built executive Tableau dashboards, ran data-science research, and coached analysts.</li>
+    </ul>
+  </div>
+
+  <div class="job">
+    <div class="head"><h3><span class="co">InfoConsulting</span> — BI Consultant</h3>
+      <span class="dates">Feb 2015 – Apr 2019</span></div>
+    <ul>
+      <li>Delivered end-to-end BI solutions on ERP sources (IFS): data-layer design on Oracle and SQL Server, ETL with Oracle Warehouse Builder and IBM DataStage, metadata layer in MicroStrategy.</li>
+      <li>Data analysis and predictions with Python and IBM Watson; presales support and BI consulting.</li>
+    </ul>
+  </div>
+
+  <div class="job">
+    <div class="head"><h3><span class="co">JCommerce SA</span> — Business Intelligence Specialist</h3>
+      <span class="dates">Mar 2010 – Jan 2015</span></div>
+    <ul>
+      <li>Designed and implemented data-warehouse-based BI systems: SAP BusinessObjects XI 3.1–4.1 (WebIntelligence, Universe Designer/IDT, Data Services, Xcelsius), IBM Cognos 8/10, Microsoft SQL Server 2005/2008 BI, Oracle OWB/BI, Tableau 8.</li>
+      <li>Built reports, dashboards, and ETL; ran end-user trainings.</li>
+    </ul>
+  </div>
+
+  <div class="job">
+    <div class="head"><h3><span class="co">Early career</span> — Consorg (BI Consultant, 2009) · Omnis (Implementation Specialist, 2008)</h3>
+      <span class="dates">2008 – 2009</span></div>
+    <ul>
+      <li>Controlling-focused BI implementation on MS SQL Server 2005/2008 BI (Optima Controlling); ERP application testing and end-user help desk.</li>
+    </ul>
+  </div>
+
+  <h2><span class="no">03</span>Skills</h2>
+  <div class="skillrow"><div class="k">AI &amp; agents</div><div>LLM agent design (Claude Code, agent skills, MCP servers, sub-agent orchestration), Google ADK, Gemini API, context engineering &amp; persistent-memory design, prompt-as-spec discipline, agent reliability engineering (watchdogs, heartbeats, idempotency, human-gated permissions), AI cost governance</div></div>
+  <div class="skillrow"><div class="k">Data engineering</div><div>SQL (BigQuery, DuckDB, MS SQL Server, Oracle, Teradata), Python (stdlib-first, TDD, pytest), cloud ETL pipelines (Keboola), data modeling, data products &amp; metadata governance (OpenMetadata), data-quality frameworks, sqlglot SQL parsing</div></div>
+  <div class="skillrow"><div class="k">Analytics &amp; BI</div><div>Metric architecture (LTV, margin, cohort), executive reporting, Tableau, Streamlit data apps, HTML/CSS reporting, semantic-layer docs (OSI), experiment evaluation; earlier stack: SAP BusinessObjects, MicroStrategy, IBM Cognos, Elastic Stack, Hadoop</div></div>
+  <div class="skillrow"><div class="k">Platform &amp; ops</div><div>git / GitHub (Actions, CLI, worktrees), launchd/cron scheduling, REST APIs (Jira, Confluence, Asana, Google Workspace), chat-ops (webhooks), macOS/Linux automation</div></div>
+  <div class="skillrow"><div class="k">Leadership</div><div>AI adoption coaching, workflow measurement &amp; ROI, skill/tooling governance, cross-team enablement, documentation culture</div></div>
+
+  <div class="two">
+    <div>
+      <h2><span class="no">04</span>Education</h2>
+      <p class="mini"><strong>MSc, Informatics and Econometrics</strong> — Economic Informatics<br>
+      University of Economics in Katowice<br>
+      <span style="color:var(--ink3)">(Uniwersytet Ekonomiczny w Katowicach)</span> · 2005 – 2010</p>
+      <h2><span class="no">05</span>Languages</h2>
+      <p class="mini">Polish — native · English — professional working proficiency (LCCI Level 3 Business English)</p>
+    </div>
+    <div>
+      <h2><span class="no">06</span>Certifications</h2>
+      <ul class="mini">
+        <li>Microsoft 70-466 — SQL Server 2012 Data Models &amp; Reports (2013)</li>
+        <li>Oracle 1Z0-052 — Database 11g Administration I (2012)</li>
+        <li>IBM Certified Developer — Cognos 10 BI Metadata Models (2012)</li>
+        <li>Microsoft 70-432 — SQL Server 2008 (2011)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot">Portfolio: <a href="https://alcz86.github.io/">alcz86.github.io</a> — featured: <a href="https://alcz86.github.io/self-healing-triage-agent.html">Self-healing AI triage agent case study</a>.</div>
+
+</div>
+</body>
+</html>
