@@ -75,7 +75,6 @@
     <div class="links">
       <a class="btn" href="cv.html">Read my CV</a>
       <a href="https://www.linkedin.com/in/aczepierga/">LinkedIn</a><span>·</span>
-      <a href="https://github.com/alcz86">GitHub</a><span>·</span>
       <a href="mailto:aleksandra@czepierga.pl">aleksandra@czepierga.pl</a><span>·</span>
       <span>Katowice, Poland</span>
     </div>
@@ -91,32 +90,32 @@
     <a class="cs" href="self-healing-triage-agent.html">
       <p class="cat">Build · flagship</p>
       <h3>A Self-Healing AI Triage Agent That Files Its Own Fix-PRs</h3>
-      <p>An always-on LLM agent that answers data-support tickets read-only — and closes its own operational loop: it detects recurring failures, diagnoses the cause, and opens a pull request with the fix. Merge is the only human action left.</p>
-      <div class="tags"><span class="tag">Claude Code</span><span class="tag">Python · 62 tests</span><span class="tag">git worktrees</span><span class="tag">watchdogs</span></div>
+      <p>An always-on LLM agent that answers data-support tickets read-only in minutes — and closes its own operational loop: it detects recurring failures, diagnoses the cause, and opens an idempotent, hash-branched pull request with the fix. Merge is the only human action left; silent-failure MTTR bounded at 15 min.</p>
+      <div class="tags"><span class="tag">Claude Code</span><span class="tag">Python · 72 tests · 11 modules</span><span class="tag">git worktrees</span><span class="tag">launchd watchdog</span><span class="tag">$0 / ticket</span></div>
       <p class="more" style="margin:12px 0 0">Read the case study →</p>
     </a>
 
     <a class="cs" href="sql-governance-validator.html">
       <p class="cat">Govern</p>
       <h3>Governance-as-Code: Validating SQL Against the Metadata Catalog</h3>
-      <p>Paste any query, get two machine-checked verdicts: are the source tables governed, and do the metric formulas match their certified definitions. Trust checking as a one-paste, deterministic operation.</p>
-      <div class="tags"><span class="tag">sqlglot</span><span class="tag">OpenMetadata</span><span class="tag">FastAPI</span><span class="tag">0 LLM calls in the SQL path</span></div>
+      <p>Paste any query, get two machine-checked verdicts: are the source tables governed, and do the metric formulas match their certified definitions. AST-level parsing resolves real table and column references — trust checking as a one-paste, deterministic operation, no LLM in the verdict path.</p>
+      <div class="tags"><span class="tag">sqlglot AST</span><span class="tag">OpenMetadata API</span><span class="tag">Keboola data app</span><span class="tag">0 LLM calls in the SQL path</span></div>
       <p class="more" style="margin:12px 0 0">Read the case study →</p>
     </a>
 
     <a class="cs" href="ai-workflow-measurement.html">
       <p class="cat">Measure</p>
       <h3>AI ROI Is a Query, Not an Anecdote</h3>
-      <p>A measurement framework where every AI workflow — agent, script, automation, report — logs cost, quality, volume, and ROI through a one-import logger into one central warehouse table, with alert rules on regressions.</p>
-      <div class="tags"><span class="tag">Python logger</span><span class="tag">one schema, 4 workflow types</span><span class="tag">dual-write + JSONL fallback</span></div>
+      <p>A measurement framework where every AI workflow — agent, script, automation, report — logs cost, quality, volume, and ROI through a one-import logger into a single normalized warehouse table. Dual-write with JSONL fallback guarantees no lost events; regression alerts fire on the aggregate, making AI value a dashboard, not a claim.</p>
+      <div class="tags"><span class="tag">Python logger</span><span class="tag">one schema · 4 workflow types</span><span class="tag">dual-write + JSONL fallback</span><span class="tag">BigQuery + GH Pages</span></div>
       <p class="more" style="margin:12px 0 0">Read the case study →</p>
     </a>
 
     <a class="cs" href="cost-aware-agent-operations.html">
       <p class="cat">Operate</p>
       <h3>Cost-Aware Agent Operations: Same Model, Different Invoice</h3>
-      <p>When LLM billing split into flat-rate vs. metered paths, invocation became an architecture decision. A decision tree, four subscription-safe patterns, an audit — and the policy encoded as an agent skill the AI applies to itself.</p>
-      <div class="tags"><span class="tag">FinOps for LLMs</span><span class="tag">policy-as-code</span><span class="tag">$0 marginal default</span></div>
+      <p>When LLM billing split into flat-rate vs. metered paths, invocation became an architecture decision. A decision tree, four subscription-safe patterns, and an audit that caught metered consumers draining a credit pool — the policy encoded as an agent skill the AI applies to itself before every run.</p>
+      <div class="tags"><span class="tag">FinOps for LLMs</span><span class="tag">policy-as-code skill</span><span class="tag">subscription vs. metered audit</span><span class="tag">$0 marginal default</span></div>
       <p class="more" style="margin:12px 0 0">Read the case study →</p>
     </a>
   </div>
@@ -125,7 +124,7 @@
     <p><strong>The through-line:</strong> AI systems earn trust the same way any production system does — engineering discipline. Judgment lives in the model; guarantees live in tested, deterministic code. Failures are structured data, not surprises. Permission changes stay human-gated. Cost is a design constraint, not an afterthought. And everything — including the AI itself — gets measured.</p>
   </div>
 
-  <div class="foot">Aleksandra Czepierga · <a href="cv.html">CV</a> · <a href="https://www.linkedin.com/in/aczepierga/">LinkedIn</a> · <a href="https://github.com/alcz86">GitHub</a> · All case studies describe real shipped systems, sanitized to architecture and engineering practices.</div>
+  <div class="foot">Aleksandra Czepierga · <a href="cv.html">CV</a> · <a href="https://www.linkedin.com/in/aczepierga/">LinkedIn</a> · All case studies describe real shipped systems, sanitized to architecture and engineering practices.</div>
 
 </div>
 </body>
