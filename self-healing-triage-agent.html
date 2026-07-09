@@ -127,7 +127,7 @@
       <span class="tag">TDD</span>
     </div>
     <div class="stats">
-      <div class="stat"><div class="v">62</div><div class="l">Unit tests</div><div class="d">TDD'd deterministic core — injected clocks, runners, and notifiers.</div></div>
+      <div class="stat"><div class="v">72</div><div class="l">Unit tests</div><div class="d">TDD'd deterministic core across 11 pure-stdlib modules — injected clocks, runners, and notifiers.</div></div>
       <div class="stat"><div class="v">3</div><div class="l">Failure modes watched</div><div class="d">Down, stuck on a prompt, stale (looping but not working).</div></div>
       <div class="stat"><div class="v">&le;15 min</div><div class="l">Silent-failure MTTR</div><div class="d">Watchdog cadence — down from "whenever a human notices".</div></div>
       <div class="stat"><div class="v">$0</div><div class="l">Marginal cost / ticket</div><div class="d">Runs as an interactive flat-rate session, never metered API calls.</div></div>
@@ -150,8 +150,8 @@
       <p>A thin <strong>scanner</strong> (detect → dedupe → dispatch, polled every 5 minutes) and a <strong>brain</strong> (classify → investigate → draft → post), one sub-agent per ticket. Prompts encode an investigation discipline, not answers.</p>
     </div>
     <div class="card"><span class="pill">Deterministic core</span>
-      <h4>Pure-stdlib Python modules</h4>
-      <p>Config, normalization, classification gates, dedupe/state, heartbeat, incident log, remediation, PR authoring — 62 tests, no network or clock in test paths (both injected).</p>
+      <h4>Eleven pure-stdlib Python modules</h4>
+      <p>Config, normalization, classification gates, dedupe/state, heartbeat, incident log, remediation, PR authoring, multi-turn follow-up, and outcome tracking — 72 tests, no network or clock in test paths (both injected).</p>
     </div>
   </div>
 
@@ -210,10 +210,12 @@
 
   <h2><span class="no">05</span>Engineering practices worth stealing</h2>
   <div class="grid2">
-    <div class="card plain"><h4>TDD with injected effects</h4><p>Clock, subprocess runner, and notifier are all parameters. 62 tests cover the deterministic core — including the PR-authoring flow, tested with a fake runner and zero real git.</p></div>
+    <div class="card plain"><h4>TDD with injected effects</h4><p>Clock, subprocess runner, and notifier are all parameters. 72 tests across 11 modules cover the deterministic core — including the PR-authoring flow, tested with a fake runner and zero real git.</p></div>
     <div class="card plain"><h4>Idempotency everywhere</h4><p>Comment markers, state files, proposal dedup, hash-derived branch names. Every action is safe to repeat — mandatory when a scheduler and an agent share a system.</p></div>
     <div class="card plain"><h4>Incidents as data</h4><p>Failures aren't just alerts — they're structured, signed records. Recurrence detection, dedup, and remediation are all simple queries over that log.</p></div>
     <div class="card plain"><h4>Cost-aware runtime</h4><p>The agent runs as an interactive flat-rate session rather than metered API/headless SDK calls — zero marginal cost per ticket and no runaway-spend failure mode.</p></div>
+    <div class="card plain"><h4>Multi-turn, resumable</h4><p>A dedicated follow-up module lets the agent ask one clarifying question and resume the exact investigation when the reporter replies — thread state carried in the ticket itself, not in memory.</p></div>
+    <div class="card plain"><h4>Effectiveness as data</h4><p>Every answer's outcome is tracked and rolled up weekly — the same "structured records, not anecdotes" discipline applied to the agent's own usefulness, feeding an auto-published IQ report.</p></div>
   </div>
 
   <h2><span class="no">06</span>Outcomes</h2>
@@ -230,7 +232,7 @@
       <li>Designed and built an always-on <strong>LLM ticket-triage agent</strong> (Claude Code + Python) that investigates data-support tickets read-only against docs, a metadata catalog, and BigQuery, and posts sourced advisory answers — cutting first response from hours to minutes at zero marginal cost.</li>
       <li>Engineered its <strong>reliability layer</strong>: a launchd watchdog detecting three silent-failure modes (down / stuck / stale-heartbeat) with edge-triggered alerting and nightly last-known-good restarts — silent-failure MTTR bounded at 15 minutes.</li>
       <li>Closed the <strong>self-remediation loop</strong>: on recurring failures the system diagnoses the root cause and opens its own fix pull request — authored in an isolated git worktree with hash-deterministic branches (idempotent), per-call timeouts, and graceful fallback — keeping the human in the loop only as PR reviewer for permission changes.</li>
-      <li>Built the deterministic core <strong>test-first</strong> (62 unit tests; injected clocks, runners, notifiers) with idempotency guarantees across every side effect.</li>
+      <li>Built the deterministic core <strong>test-first</strong> (72 unit tests across 11 pure-stdlib modules; injected clocks, runners, notifiers) with idempotency guarantees across every side effect, plus multi-turn resumable investigations and weekly outcome tracking.</li>
     </ul>
   </div>
 
