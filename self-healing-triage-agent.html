@@ -124,13 +124,14 @@
       <span class="tag">BigQuery</span>
       <span class="tag">git worktrees + GitHub CLI</span>
       <span class="tag">launchd</span>
+      <span class="tag">GitHub Actions</span>
       <span class="tag">TDD</span>
     </div>
     <div class="stats">
       <div class="stat"><div class="v">72</div><div class="l">Unit tests</div><div class="d">TDD'd deterministic core across 11 pure-stdlib modules — injected clocks, runners, and notifiers.</div></div>
       <div class="stat"><div class="v">3</div><div class="l">Failure modes watched</div><div class="d">Down, stuck on a prompt, stale (looping but not working).</div></div>
       <div class="stat"><div class="v">&le;15 min</div><div class="l">Silent-failure MTTR</div><div class="d">Watchdog cadence — down from "whenever a human notices".</div></div>
-      <div class="stat"><div class="v">$0</div><div class="l">Marginal cost / ticket</div><div class="d">Runs as an interactive flat-rate session, never metered API calls.</div></div>
+      <div class="stat"><div class="v">$0</div><div class="l">Marginal cost / ticket</div><div class="d">Default deployment runs as an interactive flat-rate session. A second, metered CI deployment adds machine-independence — budgeted, not accidental.</div></div>
     </div>
   </div>
 </header>
@@ -218,21 +219,83 @@
     <div class="card plain"><h4>Effectiveness as data</h4><p>Every answer's outcome is tracked and rolled up weekly — the same "structured records, not anecdotes" discipline applied to the agent's own usefulness, feeding an auto-published IQ report.</p></div>
   </div>
 
-  <h2><span class="no">06</span>Outcomes</h2>
+  <h2><span class="no">06</span>v2.0 — the same agent, on a cloud runner</h2>
+  <p class="sub">The flat-rate design above has one structural weakness: it lives on a workstation. When the machine sleeps, the agent stops. Rather than rewrite v1.0, I built a <strong>second deployment of the same core</strong> on cloud CI — and kept both, because they buy different things.</p>
+
+  <div class="grid2">
+    <div class="card"><span class="pill">v1.0 · default</span>
+      <h4>Interactive, on the workstation</h4>
+      <p><strong>Flat-rate · $0 marginal per ticket.</strong> Long-lived interactive session, 5-minute scan cadence, full self-remediation loop. No runaway-spend failure mode by construction. Dies with the laptop.</p>
+    </div>
+    <div class="card"><span class="pill">v2.0 · continuity</span>
+      <h4>Headless, on a CI runner</h4>
+      <p><strong>Metered · machine-independent.</strong> Scheduled cron on a shared runner, function-calling through the org LLM gateway. Survives a closed laptop and a two-week absence. Costs real money per run — so it is the deliberately-budgeted exception, not the default.</p>
+    </div>
+  </div>
+
+  <p>Keeping both was the point. The versioning is explicit — <em>1.0 is the subscription bot, 2.0 is the metered one</em> — and a shared ticket label acts as a <strong>cross-deployment dedupe key</strong>, so handing over in either direction can never produce two answers on one ticket. Rollback is a single variable flip on the repo; the workstation launch agents stay on disk, unloaded, ready to resume.</p>
+
+  <h3 style="font-size:18px;margin:34px 0 10px">What the second deployment forced me to get right</h3>
+
+  <div class="grid2">
+    <div class="card plain">
+      <h4>The model proposes; deterministic code decides</h4>
+      <p>The investigator returns a proposal. A separate pure-Python decision module owns the actual write, re-applying the egress and grounding gates itself. The LLM never holds the pen — the same judgment-vs-guarantees split as v1.0, made structural across a process boundary.</p>
+    </div>
+    <div class="card plain">
+      <h4>Tool confinement instead of a shell</h4>
+      <p>Headless meant re-deriving the security model from scratch. The model gets exactly two tools — a catalog search and a read-only warehouse query (SELECT/WITH only, rejects DML/DDL/multi-statement, byte-capped) — and <em>no</em> shell or filesystem tool, which makes the service-account key structurally unreachable rather than merely unread.</p>
+    </div>
+    <div class="card plain">
+      <h4>Protocol independence removed a whole freeze class</h4>
+      <p>All external I/O moved from a plugin protocol to plain REST clients. That killed a recurring v1.0 freeze (a payload landing in a sensitive path triggered an approval prompt mid-loop) <em>and</em> made the agent immune to a startup-time binding failure — the root cause of the 17-hour blindness described in the <a href="fleet-observability.html">fleet observability</a> case study.</p>
+    </div>
+    <div class="card plain">
+      <h4>An adversarial review that found real bugs</h4>
+      <p>Pre-launch review caught a child process inheriting the full environment (API token exposure to a prompt-injectable path), a URL-allowlist bypass via fragment, a state push that side-stepped the egress gate, a missing concurrency guard, and one ticket error aborting a whole batch. All fixed and re-verified before go-live, not after.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p><span class="pill">The expensive lesson</span> <strong>The investigator had never worked — for twelve days — while every run reported success.</strong> The gateway sits behind an internal root CA absent from the runner image, so every model call failed instantly at the TLS handshake. The workflow caught the exception, logged it, and exited green. The only visible tell was a triage step that finished in four seconds. Fix: vendor the CA bundle explicitly rather than trusting the ambient store. Generalisation — <em>a green run proves nothing unless a failure could have turned it red</em>; I now check per-step durations and exit codes, never the badge.</p>
+  </div>
+
+  <h3 style="font-size:18px;margin:34px 0 10px">Making the metered version affordable</h3>
+  <p class="sub">A budget alert at ~50% of the monthly cap projecting 317% turned cost into an engineering constraint. None of the fixes were "call the model less often and hope".</p>
+  <table>
+    <thead><tr><th>Control</th><th>Change</th><th>Why it's safe</th></tr></thead>
+    <tbody>
+      <tr><td>Scan window</td><td><strong>336 &rarr; 42 runs/week</strong></td><td>Cron restricted to working hours on weekdays — the queue doesn't move overnight.</td></tr>
+      <tr><td>Tool budget</td><td><strong>8&times;24 &rarr; 3&times;6</strong> iterations &times; calls</td><td>Bounds the worst-case cost of a single ticket instead of the average.</td></tr>
+      <tr><td><strong>Four deterministic gates</strong></td><td>Run <em>before</em> any model call</td><td>Already-answered · has a human reply · classifiable without a model (no description / waiting on reporter / access request) · free catalog pre-grounding. <strong>~49% of the open queue is rejected LLM-free</strong> — the single biggest saving, and it costs nothing to run.</td></tr>
+      <tr><td>Re-investigation state</td><td>Keyed on the ticket's own <code>updated</code> timestamp</td><td>Ends a loop that re-investigated the same unchanged tickets ~20&times;/day for no new information.</td></tr>
+      <tr><td>Retry policy</td><td>Reads retry 3&times;; <strong>writes never</strong></td><td>Idempotency is cheaper to preserve than to repair. An all-errors cycle now exits non-zero instead of green.</td></tr>
+    </tbody>
+  </table>
+  <p>The deterministic-gates row is the transferable idea: <strong>the cheapest LLM call is the one a unit-tested <code>if</code> statement makes unnecessary.</strong> Cost control and reliability turned out to be the same work — every gate that saves money also removes a way for the model to do something unhelpful.</p>
+
+  <div class="card plain">
+    <h4>A weekly learning loop</h4>
+    <p>A scheduled job scans the week's bot-handled tickets, distils at most five lessons per run, and appends them to a tracked learnings file whose tail is injected into the investigator's system prompt. The agent's own past answers become part of its next prompt — improvement that accrues in a reviewable, version-controlled file rather than in an opaque fine-tune.</p>
+  </div>
+
+  <h2><span class="no">07</span>Outcomes</h2>
   <ul>
     <li>First response on data tickets: <strong>hours &rarr; minutes</strong>, with every answer citing the doc and catalog entry behind it — including catching requests for work that was already done.</li>
     <li>Silent-failure MTTR: <strong>unbounded &rarr; &le;15 minutes</strong>, with exactly one page per incident.</li>
     <li>Recurring operational failures: <strong>investigate-and-patch by hand &rarr; review a bot-authored PR</strong>.</li>
-    <li>Marginal cost per ticket: <strong>$0</strong>; blast radius bounded at "a ticket comment" by construction.</li>
+    <li>Marginal cost per ticket: <strong>$0</strong> on the default deployment; blast radius bounded at "a ticket comment" by construction.</li>
+    <li>Continuity: a second, machine-independent deployment of the same core — <strong>metered but budgeted</strong>, cut from 336 to 42 runs/week with ~49% of the queue resolved before any model call.</li>
   </ul>
 
-  <h2><span class="no">07</span>CV-ready summary</h2>
+  <h2><span class="no">08</span>CV-ready summary</h2>
   <div class="cv">
     <ul>
       <li>Designed and built an always-on <strong>LLM ticket-triage agent</strong> (Claude Code + Python) that investigates data-support tickets read-only against docs, a metadata catalog, and BigQuery, and posts sourced advisory answers — cutting first response from hours to minutes at zero marginal cost.</li>
       <li>Engineered its <strong>reliability layer</strong>: a launchd watchdog detecting three silent-failure modes (down / stuck / stale-heartbeat) with edge-triggered alerting and nightly last-known-good restarts — silent-failure MTTR bounded at 15 minutes.</li>
       <li>Closed the <strong>self-remediation loop</strong>: on recurring failures the system diagnoses the root cause and opens its own fix pull request — authored in an isolated git worktree with hash-deterministic branches (idempotent), per-call timeouts, and graceful fallback — keeping the human in the loop only as PR reviewer for permission changes.</li>
       <li>Built the deterministic core <strong>test-first</strong> (72 unit tests across 11 pure-stdlib modules; injected clocks, runners, notifiers) with idempotency guarantees across every side effect, plus multi-turn resumable investigations and weekly outcome tracking.</li>
+      <li>Shipped a second, <strong>machine-independent deployment</strong> of the same core on cloud CI for continuity — with tool confinement replacing shell access, a deterministic decision module owning every write, a label-based cross-deployment dedupe key, and one-variable rollback — then brought its metered cost back under budget (<strong>336 &rarr; 42 runs/week</strong>, bounded tool budgets, and four pre-model gates rejecting <strong>~49% of the queue LLM-free</strong>), passing an adversarial security review that closed five real findings before go-live.</li>
     </ul>
   </div>
 
