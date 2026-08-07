@@ -83,7 +83,7 @@
 
 <div class="wrap">
 
-  <p class="arc"><b>BUILD</b> → <b>GOVERN</b> → <b>MEASURE</b> → <b>OPERATE</b> — one thesis, four case studies</p>
+  <p class="arc"><b>BUILD</b> → <b>GOVERN</b> → <b>MEASURE</b> → <b>OPERATE</b> → <b>KEEP ALIVE</b> — one thesis, five case studies</p>
   <h2>Case studies</h2>
 
   <div class="cards">
@@ -118,10 +118,18 @@
       <div class="tags"><span class="tag">FinOps for LLMs</span><span class="tag">policy-as-code skill</span><span class="tag">subscription vs. metered audit</span><span class="tag">$0 marginal default</span></div>
       <p class="more" style="margin:12px 0 0">Read the case study →</p>
     </a>
+
+    <a class="cs" href="fleet-observability.html" style="grid-column:1/-1">
+      <p class="cat">Keep alive · fleet</p>
+      <h3>Fleet Observability: Four Ways an Agent Lies About Being Alive</h3>
+      <p>Running ~18 scheduled agents, the hard question stops being "does it work" and becomes "would I know if it stopped". A heartbeat spine, a cadence-aware classifier, and side-effect probes for the agents that can't report on themselves — each detector shipped after a real incident where every health signal was green and the work had silently stopped. Plus the lesson underneath: detection without the authority to act is not recovery.</p>
+      <div class="tags"><span class="tag">stdlib-only Python</span><span class="tag">heartbeat + watchdog</span><span class="tag">launchd · CI probes</span><span class="tag">1 alert/day · silent on green</span><span class="tag">caught 16-day-stale data</span></div>
+      <p class="more" style="margin:12px 0 0">Read the case study →</p>
+    </a>
   </div>
 
   <div class="about">
-    <p><strong>The through-line:</strong> AI systems earn trust the same way any production system does — engineering discipline. Judgment lives in the model; guarantees live in tested, deterministic code. Failures are structured data, not surprises. Permission changes stay human-gated. Cost is a design constraint, not an afterthought. And everything — including the AI itself — gets measured.</p>
+    <p><strong>The through-line:</strong> AI systems earn trust the same way any production system does — engineering discipline. Judgment lives in the model; guarantees live in tested, deterministic code. Failures are structured data, not surprises. Liveness is measured by work completed, never by a process being up. Permission changes stay human-gated, while dead loops recover themselves. Cost is a design constraint, not an afterthought. And everything — including the AI itself — gets measured.</p>
   </div>
 
   <div class="foot">Aleksandra Czepierga · <a href="cv.html">CV</a> · <a href="https://www.linkedin.com/in/aczepierga/">LinkedIn</a> · All case studies describe real shipped systems, sanitized to architecture and engineering practices.</div>
