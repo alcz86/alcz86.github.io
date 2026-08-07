@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study — Fleet Observability: Four Ways an Agent Lies About Being Alive</title>
+<style>
+  :root{
+    --ink:#1a1f2e; --ink2:#4a5163; --ink3:#767d90;
+    --line:#e3e5ea; --bg:#fafafc; --card:#ffffff;
+    --accent:#3b5bdb; --accent-dim:#eef1fc;
+    --good:#2b8a3e; --warn:#c05e00;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#e8eaf0; --ink2:#b3b9c9; --ink3:#8a91a3;
+      --line:#2c3040; --bg:#14161e; --card:#1b1e29;
+      --accent:#7a95f5; --accent-dim:#232941;
+      --good:#69c179; --warn:#e8965a;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink2);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:0 28px 80px}
+  h1,h2,h3,h4{color:var(--ink);line-height:1.2;font-weight:700}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+
+  .hero{border-bottom:1px solid var(--line);padding:64px 0 40px;margin-bottom:8px}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:2.5px;font-size:12px;
+    text-transform:uppercase;margin:0 0 16px}
+  .hero h1{font-size:36px;margin:0 0 18px;letter-spacing:-.5px}
+  .hero .lede{font-size:19px;max-width:780px;margin:0 0 26px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{font-size:12.5px;font-family:var(--mono);color:var(--ink2);
+    background:var(--card);border:1px solid var(--line);border-radius:4px;padding:3px 10px}
+
+  h2{font-size:25px;margin:52px 0 10px}
+  h2 .no{color:var(--accent);font-family:var(--mono);font-size:15px;vertical-align:middle;margin-right:10px}
+  .sub{margin:0 0 20px;max-width:800px}
+  p{margin:0 0 14px}
+  strong{color:var(--ink)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
+  .stat .v{font-size:30px;font-weight:750;color:var(--ink);letter-spacing:-.5px}
+  .stat .l{font-size:13px;font-weight:650;color:var(--ink);margin:2px 0 3px}
+  .stat .d{font-size:12.5px;color:var(--ink3);line-height:1.45}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:18px 22px;margin:0 0 14px}
+  .grid2 .card{margin:0}
+  .card.plain{border-left-color:var(--line)}
+  .card h4{margin:0 0 6px;font-size:15.5px}
+  .card p{font-size:14px;margin:0}
+  .card p+p{margin-top:8px}
+  .pill{display:inline-block;font-size:11px;font-weight:750;letter-spacing:.7px;
+    text-transform:uppercase;color:var(--accent);background:var(--accent-dim);
+    border-radius:3px;padding:3px 9px;margin:0 0 8px}
+
+  pre{background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:12.8px;
+    line-height:1.6;color:var(--ink);margin:0 0 14px}
+  code{font-family:var(--mono);font-size:13px;background:var(--accent-dim);
+    border-radius:3px;padding:1px 6px;color:var(--ink)}
+  pre code{background:none;padding:0}
+
+  .tablewrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;margin:14px 0 24px;font-size:14.5px}
+  th{text-align:left;color:var(--ink);font-size:12.5px;text-transform:uppercase;
+    letter-spacing:.8px;padding:9px 14px;border-bottom:2px solid var(--line)}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  ul{margin:0 0 14px;padding-left:22px}
+  li{margin:0 0 8px;font-size:15px}
+  li::marker{color:var(--accent)}
+  .ok{color:var(--good);font-weight:700}
+  .no-x{color:var(--warn);font-weight:700}
+  .foot{border-top:1px solid var(--line);margin-top:56px;padding-top:18px;font-size:13px;color:var(--ink3)}
+  @media (max-width:760px){ .stats{grid-template-columns:repeat(2,1fr)} .grid2{grid-template-columns:1fr} .hero h1{font-size:29px} }
+  @media print{ body{background:#fff} .hero{padding-top:24px} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap" style="padding-bottom:0">
+    <p class="kicker">Case Study · Reliability Engineering</p>
+    <h1>Fleet Observability: Four Ways an Agent Lies About Being Alive</h1>
+    <p class="lede">Once you run a fleet of scheduled agents rather than one, the hard question stops being "does it work" and becomes "would I know if it stopped". I built the answer: a heartbeat spine, a daily classifier, and side-effect probes for the agents that can't report on themselves — after four separate incidents where <em>every</em> health signal was green and the work had quietly stopped.</p>
+    <div class="meta">
+      <span class="tag">agent reliability engineering</span>
+      <span class="tag">heartbeat + watchdog design</span>
+      <span class="tag">Python (stdlib-only)</span>
+      <span class="tag">launchd · CI probes · chat-ops</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">~18</div><div class="l">Agents under watch</div><div class="d">Local schedulers and cloud CI jobs, classified through one uniform pipeline.</div></div>
+      <div class="stat"><div class="v">4</div><div class="l">False-green failure modes</div><div class="d">Each one shipped as a distinct detector after a real incident.</div></div>
+      <div class="stat"><div class="v">1</div><div class="l">Alert per day, max</div><div class="d">Silent on green. One digest, not eighteen noisy monitors.</div></div>
+      <div class="stat"><div class="v">16d</div><div class="l">Stale data caught</div><div class="d">A dashboard publishing frozen numbers for over two weeks — behind a green tick.</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2><span class="no">01</span>The problem: liveness is not one signal</h2>
+  <p class="sub">Every scheduled agent I ran had <em>a</em> health check. All of them passed. And four times, in four different ways, the work had stopped anyway.</p>
+  <p>The pattern behind all four is the same: <strong>the thing being measured was a proxy for the thing that mattered</strong>. A process exists. A file was written. A CI badge is green. None of those are "the agent accomplished its job." Once that gap opens, a monitor doesn't just fail to help — it actively manufactures confidence.</p>
+  <div class="card">
+    <p><span class="pill">The design principle</span> <strong>Measure liveness by work output — not by process existence, and not by heartbeat freshness alone.</strong> A heartbeat proves that code ran. It does not prove that anything was accomplished. Those must be two separate signals, or a failing agent will write a perfectly fresh heartbeat about its own failure forever.</p>
+  </div>
+
+  <h2><span class="no">02</span>The four lies</h2>
+  <p class="sub">Each detector in the system exists because one of these happened in production.</p>
+
+  <div class="grid2">
+    <div class="card"><span class="pill">Lie 1 · Process</span>
+      <h4>"The session is up" — for 22 hours of nothing</h4>
+      <p>An always-on agent sat at an idle prompt for 22 hours. The multiplexer session existed, the PID existed, the scheduler reported loaded. Every process-existence check said healthy.</p>
+      <p><strong>Fix:</strong> liveness = a heartbeat written <em>by the work itself</em>, never by the launcher or the monitor — plus a grace window for young sessions, so "hasn't run yet" isn't mistaken for "dead" and double-armed.</p>
+    </div>
+
+    <div class="card"><span class="pill">Lie 2 · Blindness</span>
+      <h4>"Scanning on schedule" — and seeing nothing, for 17 hours</h4>
+      <p>Two individually correct decisions cancelled each other. The agent wrote a heartbeat on the <em>failure</em> path (so failures wouldn't be silent — good), and liveness keyed on heartbeat <em>freshness</em> (reasonable). Together: a blind agent wrote a fresh failure-heartbeat every 10 minutes and every check reported healthy. <em>"Did work"</em> and <em>"saw anything"</em> had collapsed into one signal.</p>
+      <p><strong>Fix:</strong> a distinct <code>blind</code> classification — the last <em>k</em> runs all errored <em>and</em> all saw zero items. Requiring all <em>k</em> means a flaky call or a single upstream 5xx stays <code>errors</code> and never triggers a restart.</p>
+    </div>
+
+    <div class="card"><span class="pill">Lie 3 · Threshold</span>
+      <h4>A staleness window wider than the cadence</h4>
+      <p>Weekly agents were allowed 200 hours of silence. An agent that skips its one weekly slot sits at ~168h — comfortably under the limit. Three agents were dead for roughly six weeks behind a green <code>OK — ran 168h ago</code>.</p>
+      <p><strong>Fix:</strong> <code>allowed_age = cadence + small slack</code>, never <code>cadence × 1.2</code>. A healthy agent has <em>just</em> run when the digest checks it. If the threshold tolerates a whole skipped cycle, healthy and dead are indistinguishable by construction.</p>
+    </div>
+
+    <div class="card"><span class="pill">Lie 4 · Green CI</span>
+      <h4>A passing run that did nothing</h4>
+      <p>A shell wrapper ran five scripts, captured each exit code into a log line, and never acted on it — so the job's exit status was that of the final <code>echo</code>. Three of five steps died and CI went green. Separately, a notifier designed to be non-fatal returned <code>False</code> on a runner where its local CLI didn't exist: green run, nothing posted, nobody told.</p>
+      <p><strong>Fix:</strong> a pass is only meaningful if a failure <em>could</em> have made it fail. Tally failures and exit non-zero; callers must check non-fatal return values and raise. Verify migrations by reading <em>per-step</em> conclusions, never the run badge.</p>
+    </div>
+  </div>
+
+  <h2><span class="no">03</span>Architecture</h2>
+  <p class="sub">Three small stdlib-only Python modules and one scheduler entry. No service, no database, no dependency the agents don't already have.</p>
+
+  <pre><code>agent_heartbeat.py     shared helper — the write side
+  record(agent, status, **fields)  → artifacts/agent_heartbeat/&lt;agent&gt;.json
+  freshness_lag_days()             → is the INPUT data current?
+  content_health()                 → did the run actually see anything?
+  CLI: agent_heartbeat.py record &lt;agent&gt; &lt;status&gt; [k=v ...]
+       ← any script, any language, any repo, one line
+
+fleet_remote_checks.py  side-effect probes — for agents that can't write here
+  cloud CI agents are checked by querying a SPECIFIC workflow's last run,
+  then a heartbeat is written ON THEIR BEHALF → the digest reads one format
+
+fleet_health_digest.py  the read side — classify + notify
+  for each agent in INVENTORY:
+      OK | SILENT (didn't run) | UNHEALTHY (status != ok) | MISSING
+  cadence-aware windows: weekday_only (30h, 78h over a weekend) | weekly (174h)
+  posts ONE chat message if anything is wrong — SILENT ON GREEN
+  --daily forces a post · --dry-run suppresses it
+
+launchd  →  weekday mornings, one run, one message</code></pre>
+
+  <p>The important structural choice is the <strong>uniform read path</strong>. Agents running on a laptop write their own heartbeat file; agents running in cloud CI can't, so a probe checks their side effects and writes the heartbeat for them. The classifier never learns the difference — which means adding an agent is one inventory entry, not a new monitor.</p>
+
+  <h2><span class="no">04</span>The rules that make it not lie</h2>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Rule</th><th>Why — the failure it prevents</th></tr>
+    <tr><td><strong>Heartbeat on success <em>and</em> on crash</strong> — wrap the entry point in try/except</td><td>A crash <em>before</em> the success-path write leaves no file at all. The agent looks quiet, not broken, until the staleness window trips hours later.</td></tr>
+    <tr><td><strong>Guarded imports</strong> of the helper</td><td>Observability must never be able to break the thing it observes. A missing helper degrades to no-heartbeat, never to a crashed agent.</td></tr>
+    <tr><td><strong>Probes degrade to SILENT, never to <span class="ok">ok</span></strong></td><td>A check that fails must not be readable as a healthy agent. Fail toward the alarm.</td></tr>
+    <tr><td><strong>Probe a specific workflow, not "latest run"</strong></td><td>Repo-latest reads across <em>all</em> workflows — a green unrelated job masks the dead one you care about.</td></tr>
+    <tr><td><strong>Threshold tighter than one cadence</strong></td><td>Otherwise a fully skipped cycle reads as healthy. See Lie 3.</td></tr>
+    <tr><td><strong>Silent on green</strong></td><td>A daily "all fine" message trains everyone to ignore the channel — and then the one real alert is ignored too.</td></tr>
+  </table>
+  </div>
+
+  <div class="card plain">
+    <h4>Diagnostic tells that a monitor is lying to you</h4>
+    <p>Worth internalising, because they generalise well beyond agents:</p>
+    <ul style="margin-top:10px">
+      <li>A verdict quoting a suspiciously round multiple of the cadence (<code>168h</code> = exactly 7 days) yet reading OK.</li>
+      <li><strong>Byte-identical timestamps across independent agents</strong> — jobs on different schedules cannot finish in the same second. That's a backfill writing fabricated heartbeats.</li>
+      <li><strong>Zero-byte stdout <em>and</em> stderr</strong> on a job that "ran" — the failure precedes any program output, so it's in the wrapper, not the program.</li>
+      <li>Before calling a monitor's output stale, check <em>the monitor's own schedule</em> — a weekend gap in a weekday-only digest looks exactly like a dead publisher.</li>
+    </ul>
+  </div>
+
+  <h2><span class="no">05</span>Detection without authority is not recovery</h2>
+  <p class="sub">The most expensive lesson in the project, and the one I'd keep if I could keep only one.</p>
+  <p>During the 22-hour outage the watchdog diagnosed the problem <em>perfectly</em>. It went <code>stale</code>, alerted once, then logged <code>status=stale (prev=stale)</code> more than eighty times while nothing on the machine was willing to restart anything. <strong>Alert-only is a half-loop.</strong></p>
+  <p>The root cause was a good principle leaking out of its lane. "Propose, never auto-apply" is exactly right for <em>permission and allowlist changes</em> — widening what an agent may do unattended is a security decision that belongs to a human. But that posture had spread into the <em>liveness</em> path, where restarting a dead loop is not a security decision at all. So I split them explicitly:</p>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Condition</th><th>Authority</th><th>Trigger style</th></tr>
+    <tr><td><code>stale</code> / <code>down</code> — the loop isn't running</td><td class="ok">Auto-recover: restart</td><td>Every tick while unhealthy</td></tr>
+    <tr><td><code>blind</code> — running, producing nothing</td><td class="ok">Auto-recover: kill first, then relaunch</td><td>Every tick while unhealthy</td></tr>
+    <tr><td><code>stuck</code> — waiting on a permission prompt</td><td class="no-x">Human-gated</td><td>Edge-triggered alert</td></tr>
+  </table>
+  </div>
+  <p>Two details that look like pedantry and aren't. <strong>Kill before relaunch</strong> for blindness: the launcher's own liveness test is heartbeat freshness, which a blind agent passes, so a plain "start if not running" is a no-op. And <strong>not edge-triggered</strong> for the auto-recover states: a blind or dead agent does zero work, so there is no new edge to fire on — one failed recovery attempt would otherwise leave it dead forever.</p>
+  <p>The question I now ask of every monitor I add: <strong>if this fires, what is allowed to act on it?</strong> If the answer is "nothing", I've built a notification, not a control loop.</p>
+
+  <h2><span class="no">06</span>What it caught</h2>
+  <ul>
+    <li>A published dashboard serving <strong>16-day-stale data</strong> — the pipeline was frozen upstream, the publisher ran happily every morning, and every check was green. The freshness signal is what surfaced it.</li>
+    <li>The <strong>crash blind-spot</strong>: agents that died before writing a success heartbeat and therefore looked merely quiet.</li>
+    <li><strong>Three weekly agents dead for ~6 weeks</strong> behind a threshold wider than their own cadence.</li>
+    <li>A <strong>retired job still in the inventory</strong> — the digest is also a census, so decommissioned work stops being ambiguous.</li>
+    <li>A <strong>backup job wedged for two days</strong> at exit code 0: a shell conditional caught the push rejection and logged it instead of raising. It <em>had</em> alerted, into a channel nobody watched — an alert nothing watches is not a signal.</li>
+  </ul>
+
+  <div class="card">
+    <p><span class="pill">Generalisation</span> <strong>Laptop-only assumptions fail silently in the cloud.</strong> Every migration failure I hit had the same shape — a hardcoded home-directory path, a CLI that only exists on the workstation, user-scoped OAuth credentials. On a shared runner these raise at import or return falsy, and any non-strict wrapper converts that into a green tick. Grepping for those three shapes before moving a job to CI is now a standing step.</p>
+  </div>
+
+  <div class="foot">Part of a portfolio: <a href="index.html">all case studies</a> · this system generalises the watchdog spine built for the <a href="self-healing-triage-agent.html">self-healing triage agent</a>, and runs on the flat-rate path described in <a href="cost-aware-agent-operations.html">cost-aware agent operations</a>. All identifiers and business specifics removed; architecture and engineering practices only.</div>
+
+</div>
+</body>
+</html>
