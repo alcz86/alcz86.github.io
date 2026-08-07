@@ -114,6 +114,11 @@
       <p>100+ custom agent skills under actual QA: a deterministic skill evaluator, a trigger-collision matrix, CI schema validation, and weekly automated governance audits of deployed AI apps.</p>
     </div>
     <div class="card">
+      <h3>Operable at fleet scale</h3>
+      <p>~18 scheduled agents under one observability spine — heartbeats written by the work itself, cadence-aware staleness classification, side-effect probes for cloud jobs, one alert a day and silent on green. Built after four incidents where every health signal was green and the work had stopped.</p>
+      <span class="ev">→ Case study: <a href="https://alcz86.github.io/fleet-observability.html">Four ways an agent lies about being alive</a></span>
+    </div>
+    <div class="card">
       <h3>Measured, not vibes</h3>
       <p>Built a measurement framework that logs every AI workflow's usage and outcomes (time saved, adoption, cost) into a warehouse table — so AI ROI is a query, not an anecdote.</p>
     </div>
@@ -130,8 +135,10 @@
       <span class="dates">Apr 2025 – present</span></div>
     <p class="sub">Supply Analytics Stream Owner — leading an AI-first analytics team in the Supply &amp; Merchant domain · Katowice, remote</p>
     <ul>
-      <li>Drive the AI-first transformation of the analytics team: embedding Claude and agentic workflows into day-to-day analytical work, with adoption and savings tracked in a measurement framework I built.</li>
+      <li>Drive the AI-first transformation of the analytics team: embedding Claude and agentic workflows into day-to-day analytical work, with adoption and savings tracked in a measurement framework I built — <strong>~25 hours/week of recurring analyst effort automated away</strong>, evidenced rather than estimated.</li>
+      <li>Own a <strong>data-trust engineering agenda</strong> against explicit targets — metric accuracy ≥95%, data-quality check coverage ≥98%, mean time to resolve a data incident ≤3 days — backed by automated in-pipeline invariant assertions and cross-source reconciliation monitors.</li>
       <li>Designed and operate an <strong>always-on, self-healing LLM triage agent</strong> (Claude Code + pure-stdlib Python, 62 unit tests): read-only investigations over docs, a metadata catalog, and BigQuery; watchdog covering three silent-failure modes; a self-remediation loop that ships its own fix-PRs with merge as the human gate.</li>
+      <li>Built <strong>fleet observability</strong> for ~18 scheduled agents: a shared heartbeat helper with a universal one-line CLI, a cadence-aware classifier (OK / silent / unhealthy / missing), side-effect probes for cloud-CI agents that can't self-report, and a three-tier remediation split — dead and blind loops auto-recover, permission changes stay human-gated. Caught a dashboard publishing 16-day-stale data behind a green health check.</li>
       <li>Built <strong>governance-as-code</strong> for the data platform: a validator app that parses production SQL (sqlglot) and diffs it against certified metric definitions in the metadata catalog to catch methodology drift; automated weekly audits scoring deployed data apps on cost, security, and discoverability.</li>
       <li>Created analyst-friendly <strong>AI infrastructure</strong> — skills, prompts, and tooling — under actual QA: deterministic quality grader, trigger-collision matrix across 60+ agent skills, CI schema validation, scheduled evaluation runs.</li>
       <li>Spearhead <strong>data-platform modernization</strong> (Keboola + BigQuery): customer-LTV and margin metric architecture, self-service data-intake pipelines with validation gates, cross-source data-quality reconciliation monitors, semantic-layer documentation (OSI).</li>
@@ -186,7 +193,7 @@
   </div>
 
   <h2><span class="no">03</span>Skills</h2>
-  <div class="skillrow"><div class="k">AI &amp; agents</div><div>LLM agent design (Claude Code, agent skills, MCP servers, sub-agent orchestration), Google ADK, Gemini API, context engineering &amp; persistent-memory design, prompt-as-spec discipline, agent reliability engineering (watchdogs, heartbeats, idempotency, human-gated permissions), AI cost governance</div></div>
+  <div class="skillrow"><div class="k">AI &amp; agents</div><div>LLM agent design (Claude Code, agent skills, MCP servers, sub-agent orchestration), Google ADK, Gemini API, context engineering &amp; persistent-memory design, prompt-as-spec discipline, agent reliability engineering (watchdogs, heartbeats, liveness-by-work-output, fleet observability, idempotency, human-gated permissions), durable agent orchestration (Temporal), LLM observability (Langfuse), AI cost governance</div></div>
   <div class="skillrow"><div class="k">Data engineering</div><div>SQL (BigQuery, DuckDB, MS SQL Server, Oracle, Teradata), Python (stdlib-first, TDD, pytest), cloud ETL pipelines (Keboola), data modeling, data products &amp; metadata governance (OpenMetadata), data-quality frameworks, sqlglot SQL parsing</div></div>
   <div class="skillrow"><div class="k">Analytics &amp; BI</div><div>Metric architecture (LTV, margin, cohort), executive reporting, Tableau, Streamlit data apps, HTML/CSS reporting, semantic-layer docs (OSI), experiment evaluation; earlier stack: SAP BusinessObjects, MicroStrategy, IBM Cognos, Elastic Stack, Hadoop</div></div>
   <div class="skillrow"><div class="k">Platform &amp; ops</div><div>git / GitHub (Actions, CLI, worktrees), launchd/cron scheduling, REST APIs (Jira, Confluence, Asana, Google Workspace), chat-ops (webhooks), macOS/Linux automation</div></div>
@@ -212,7 +219,7 @@
     </div>
   </div>
 
-  <div class="foot">Portfolio: <a href="https://alcz86.github.io/">alcz86.github.io</a> — four case studies: <a href="self-healing-triage-agent.html">self-healing triage agent</a> · <a href="sql-governance-validator.html">SQL governance validator</a> · <a href="ai-workflow-measurement.html">AI workflow measurement</a> · <a href="cost-aware-agent-operations.html">cost-aware agent operations</a>.</div>
+  <div class="foot">Portfolio: <a href="https://alcz86.github.io/">alcz86.github.io</a> — five case studies: <a href="self-healing-triage-agent.html">self-healing triage agent</a> · <a href="sql-governance-validator.html">SQL governance validator</a> · <a href="ai-workflow-measurement.html">AI workflow measurement</a> · <a href="cost-aware-agent-operations.html">cost-aware agent operations</a> · <a href="fleet-observability.html">fleet observability</a>.</div>
 
 </div>
 </body>
