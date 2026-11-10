@@ -83,33 +83,39 @@
 
 <div class="wrap">
 
-  <p class="arc"><b>BUILD</b> → <b>GOVERN</b> → <b>MEASURE</b> → <b>OPERATE</b> → <b>KEEP ALIVE</b> — one thesis, five case studies</p>
+  <p class="arc"><b>BUILD</b> → <b>GOVERN</b> → <b>MEASURE</b> → <b>OPERATE</b> → <b>KEEP ALIVE</b> — one thesis, six case studies and one lesson</p>
   <h2>Case studies</h2>
 
   <div class="cards">
     <a class="cs" href="self-healing-triage-agent.html">
       <p class="cat">Build · flagship</p>
-      <h3>A Self-Healing AI Triage Agent That Files Its Own Fix-PRs</h3>
-      <p>An always-on LLM agent that answers data-support tickets read-only in minutes — and closes its own operational loop: it detects recurring failures, diagnoses the cause, and opens an idempotent, hash-branched pull request with the fix. Merge is the only human action left; silent-failure MTTR bounded at 15 min.</p>
-      <p>Plus a second, machine-independent deployment of the same core on cloud CI — tool-confined, deterministically gated, and cost-engineered from 336 to 42 runs/week.</p>
-      <div class="tags"><span class="tag">Claude Code</span><span class="tag">Python · 72 tests · 11 modules</span><span class="tag">git worktrees</span><span class="tag">launchd watchdog</span><span class="tag">$0 / ticket</span><span class="tag">2 deployments · flat-rate + metered</span></div>
-      <p class="more" style="margin:12px 0 0">Read the case study →</p>
+      <h3>A Self-Healing AI Triage Agent That Files Its Own Fix PRs</h3>
+      <p>Early result: about 160% more tickets reached per cycle, about 67% fewer CI runs, and over 1,500 tests around the model. It answers B2B data-support tickets with sourced, read-only investigations, spots its own recurring failures and opens fix pull requests for human review. It runs in two places: a laptop agent and a live production deployment on GitHub Actions, which checks itself against seven acceptance tests on every run and picks up any ticket the laptop has not handled.</p>
+      <div class="tags"><span class="tag">Claude Code</span><span class="tag">GitHub Actions</span><span class="tag">BigQuery</span><span class="tag">OpenMetadata</span><span class="tag">1,500+ tests</span></div>
+      <p class="more" style="margin:12px 0 0">Read: Self-healing triage agent →</p>
     </a>
 
     <a class="cs" href="sql-governance-validator.html">
       <p class="cat">Govern</p>
       <h3>Governance-as-Code: Validating SQL Against the Metadata Catalog</h3>
-      <p>Paste any query, get two machine-checked verdicts: are the source tables governed, and do the metric formulas match their certified definitions. AST-level parsing resolves real table and column references — trust checking as a one-paste, deterministic operation, no LLM in the verdict path.</p>
+      <p>Paste any query, get two machine-checked verdicts: are the source tables governed, and do the metric formulas match their certified definitions. AST-level parsing resolves real table and column references — trust checking as a one-paste, deterministic operation, no LLM in the verdict path. A weekly drift scan with no model calls checks about 15 data products against live data; AI is used only to triage what it finds.</p>
       <div class="tags"><span class="tag">sqlglot AST</span><span class="tag">OpenMetadata API</span><span class="tag">Keboola data app</span><span class="tag">0 LLM calls in the SQL path</span></div>
-      <p class="more" style="margin:12px 0 0">Read the case study →</p>
+      <p class="more" style="margin:12px 0 0">Read: Governance-as-code validator →</p>
     </a>
+
+    <div class="cs">
+      <p class="cat">Govern</p>
+      <h3>Metric Trust Audit: When the Wiki and the Catalog Disagree</h3>
+      <p>About 40% of live metrics had a second definition in the wiki, and every copy can drift. A typical case: the same bookings metric defined as an order count in one place and a dollar sum in the other. A knowledge graph built with graphify over about 150 documentation pages shows where to look. Then each suspected contradiction goes to its own agent, which must quote both sources or drop it. About a third of the suspects held up, and about half of those are already resolved.</p>
+      <div class="tags"><span class="tag">graphify</span><span class="tag">OpenMetadata</span><span class="tag">BigQuery</span><span class="tag">Claude Code subagents</span></div>
+    </div>
 
     <a class="cs" href="ai-workflow-measurement.html">
       <p class="cat">Measure</p>
       <h3>AI ROI Is a Query, Not an Anecdote</h3>
       <p>A measurement framework where every AI workflow — agent, script, automation, report — logs cost, quality, volume, and ROI through a one-import logger into a single normalized warehouse table. Dual-write with JSONL fallback guarantees no lost events; regression alerts fire on the aggregate, making AI value a dashboard, not a claim.</p>
       <div class="tags"><span class="tag">Python logger</span><span class="tag">one schema · 4 workflow types</span><span class="tag">dual-write + JSONL fallback</span><span class="tag">BigQuery + GH Pages</span></div>
-      <p class="more" style="margin:12px 0 0">Read the case study →</p>
+      <p class="more" style="margin:12px 0 0">Read: AI ROI measurement →</p>
     </a>
 
     <a class="cs" href="cost-aware-agent-operations.html">
@@ -117,7 +123,7 @@
       <h3>Cost-Aware Agent Operations: Same Model, Different Invoice</h3>
       <p>When LLM billing split into flat-rate vs. metered paths, invocation became an architecture decision. A decision tree, four subscription-safe patterns, and an audit that caught metered consumers draining a credit pool — the policy encoded as an agent skill the AI applies to itself before every run.</p>
       <div class="tags"><span class="tag">FinOps for LLMs</span><span class="tag">policy-as-code skill</span><span class="tag">subscription vs. metered audit</span><span class="tag">$0 marginal default</span></div>
-      <p class="more" style="margin:12px 0 0">Read the case study →</p>
+      <p class="more" style="margin:12px 0 0">Read: Cost-aware agent operations →</p>
     </a>
 
     <a class="cs" href="fleet-observability.html" style="grid-column:1/-1">
@@ -125,8 +131,15 @@
       <h3>Fleet Observability: Four Ways an Agent Lies About Being Alive</h3>
       <p>Running ~18 scheduled agents, the hard question stops being "does it work" and becomes "would I know if it stopped". A heartbeat spine, a cadence-aware classifier, and side-effect probes for the agents that can't report on themselves — each detector shipped after a real incident where every health signal was green and the work had silently stopped. Plus the lesson underneath: detection without the authority to act is not recovery.</p>
       <div class="tags"><span class="tag">stdlib-only Python</span><span class="tag">heartbeat + watchdog</span><span class="tag">launchd · CI probes</span><span class="tag">1 alert/day · silent on green</span><span class="tag">caught 16-day-stale data</span></div>
-      <p class="more" style="margin:12px 0 0">Read the case study →</p>
+      <p class="more" style="margin:12px 0 0">Read: Fleet observability →</p>
     </a>
+
+    <div class="cs" style="grid-column:1/-1">
+      <p class="cat">Lesson</p>
+      <h3>A Multi-Million-Dollar Revenue Line That Read as Zero</h3>
+      <p>Five separate silent join failures hid a multi-million-dollar revenue line behind a believable zero, and only one person noticed. No error fired, because COALESCE to 0 turned "unknown" into a clean-looking number. My rule now: 0 means measured and zero, NULL means unknown.</p>
+      <div class="tags"><span class="tag">SQL</span><span class="tag">BigQuery</span><span class="tag">data quality</span></div>
+    </div>
   </div>
 
   <div class="about">
