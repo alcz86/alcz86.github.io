@@ -1,0 +1,1071 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>dbt Workbench</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: lesson rail on the left, brief on top, editor beside a live DAG + dbt console. */
+:root {
+  --bg: #F2F3F6; --surface: #FFFFFF; --sunk: #E9EBF0; --ink: #16181D; --muted: #5A6170; --line: #D6DAE2;
+  --accent: #CF4519; --accent-soft: #FBE7DF; --accent-ink: #FFFFFF;
+  --ok: #1B7A4B; --ok-soft: #E2F3EA; --fail: #BE2A36; --fail-soft: #FBE5E7; --warn: #9C640E; --warn-soft: #FBF0DC;
+  --src: #2B63A3; --src-soft: #E3ECF7; --code: #FBFBFD;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #101217; --surface: #181B22; --sunk: #1F232B; --ink: #E6E8EE; --muted: #9AA1AF; --line: #2C313B;
+  --accent: #FF7A4D; --accent-soft: #3A2219; --accent-ink: #1A0D08;
+  --ok: #43C483; --ok-soft: #15301F; --fail: #FF6B75; --fail-soft: #3A1A1E; --warn: #E3AC4F; --warn-soft: #362812;
+  --src: #6FA8EC; --src-soft: #17263A; --code: #14171D; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #101217; --surface: #181B22; --sunk: #1F232B; --ink: #E6E8EE; --muted: #9AA1AF; --line: #2C313B;
+  --accent: #FF7A4D; --accent-soft: #3A2219; --accent-ink: #1A0D08;
+  --ok: #43C483; --ok-soft: #15301F; --fail: #FF6B75; --fail-soft: #3A1A1E; --warn: #E3AC4F; --warn-soft: #362812;
+  --src: #6FA8EC; --src-soft: #17263A; --code: #14171D; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+code, kbd { font-family: var(--f-mono); font-size: .88em; background: var(--sunk); padding: 1px 5px; border-radius: 4px; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, textarea:focus-visible, select:focus-visible, input:focus-visible, .node:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.top { border-bottom: 1px solid var(--line); background: var(--surface);
+  padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top-in { max-width: 1520px; margin: 0 auto; display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.brand { font-family: var(--f-display); font-weight: 800; font-size: 22px; letter-spacing: -.01em; }
+.brand span { color: var(--accent); }
+.tag { color: var(--muted); font-size: 13px; }
+.progress { margin-left: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+#engine { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--warn-soft); color: var(--warn); }
+#engine.ready { background: var(--ok-soft); color: var(--ok); }
+#engine.bad { background: var(--fail-soft); color: var(--fail); }
+
+.app { max-width: 1520px; margin: 0 auto; display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px;
+  padding-block: 20px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (max-width: 920px) { .app { grid-template-columns: minmax(0, 1fr); } }
+
+.rail { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.rail h2 { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; font-weight: 600; }
+#lessonList { display: flex; flex-direction: column; gap: 4px; }
+.lbtn { display: grid; grid-template-columns: 26px 1fr 18px; gap: 8px; align-items: center; text-align: left; width: 100%;
+  padding: 8px 10px; border: 1px solid transparent; border-radius: 8px; background: none; color: var(--ink); }
+.lbtn:hover { background: var(--surface); }
+.lbtn.on { background: var(--surface); border-color: var(--line); }
+.lbtn .n { font-family: var(--f-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lbtn.on .n { color: var(--accent); font-weight: 500; }
+.lbtn .ck { color: var(--ok); font-weight: 600; }
+.cheat { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+.cheat summary { cursor: pointer; font-weight: 600; }
+.cheat dl { margin: 8px 0 0; display: grid; gap: 6px; }
+.cheat dt { font-family: var(--f-mono); font-size: 12px; }
+.cheat dd { margin: 0 0 4px; color: var(--muted); }
+.fine { font-size: 12px; color: var(--muted); }
+
+main { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.brief { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 1150px) { .brief { grid-template-columns: minmax(0, 1fr); } }
+.kicker { font-family: var(--f-mono); font-size: 12px; color: var(--accent); letter-spacing: .04em; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(26px, 3vw, 34px); line-height: 1.1; margin: 4px 0 10px; text-wrap: balance; letter-spacing: -.015em; }
+.prose { max-width: 68ch; }
+.prose p { margin: 0 0 10px; }
+.prose table { border-collapse: collapse; font-size: 14px; margin: 6px 0 10px; width: 100%; }
+.prose td, .prose th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.prose th { font-size: 12px; color: var(--muted); font-weight: 600; }
+.task { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.task h3 { margin: 0; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.task ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.status { border-radius: 8px; padding: 10px 12px; font-size: 14px; background: var(--sunk); color: var(--muted); }
+.status b { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
+.status.ok { background: var(--ok-soft); color: var(--ok); }
+.status.no { background: var(--warn-soft); color: var(--warn); }
+.status .msg { color: var(--ink); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ghost { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 7px; padding: 5px 11px; font-size: 13px; }
+.ghost:hover { border-color: var(--muted); }
+.hint { font-size: 14px; background: var(--src-soft); border-radius: 8px; padding: 10px 12px; }
+details.sol summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+details.sol pre { font-family: var(--f-mono); font-size: 12px; background: var(--code); border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow-x: auto; margin: 8px 0 0; }
+.next { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 7px; padding: 6px 14px; font-weight: 600; }
+
+.work { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 1150px) { .work { grid-template-columns: minmax(0, 1fr); } }
+.pane { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0; display: flex; flex-direction: column; }
+.pane-h { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; padding: 8px 8px 0; border-bottom: 1px solid var(--line); }
+.tab { border: 1px solid transparent; border-bottom: 0; background: none; color: var(--muted); padding: 6px 10px; border-radius: 6px 6px 0 0; font-family: var(--f-mono); font-size: 12.5px; margin-bottom: -1px; }
+.tab.on { background: var(--code); border-color: var(--line); color: var(--ink); }
+.tab.out { font-family: var(--f-body); font-size: 13px; }
+.tab.out.on { background: var(--surface); }
+.newfile { margin-left: auto; display: flex; gap: 4px; align-items: center; padding-bottom: 6px; }
+.newfile input { font-family: var(--f-mono); font-size: 12px; width: 150px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--code); color: var(--ink); }
+#editor { width: 100%; min-height: 380px; flex: 1; border: 0; resize: vertical; background: var(--code); color: var(--ink);
+  font-family: var(--f-mono); font-size: 13px; line-height: 1.6; padding: 14px; tab-size: 4; white-space: pre; overflow: auto; border-radius: 0; }
+.cmds { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px; border-top: 1px solid var(--line); }
+.cmd { font-family: var(--f-mono); font-size: 13px; border-radius: 7px; padding: 6px 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.cmd.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
+.cmd:disabled { opacity: .5; cursor: not-allowed; }
+.cmds label { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); display: flex; gap: 5px; align-items: center; }
+.cmds .spacer { flex: 1; }
+.land { border-color: var(--src); color: var(--src); }
+
+.dag { padding: 10px; border-bottom: 1px solid var(--line); overflow-x: auto; min-height: 150px; }
+.dag svg { display: block; }
+.dag .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+.dag .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; border: 2px solid; margin-right: 4px; vertical-align: -1px; }
+.node { cursor: pointer; }
+.node rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+.node .nm { fill: var(--ink); font-family: var(--f-mono); font-size: 12px; }
+.node .sb { fill: var(--muted); font-family: var(--f-body); font-size: 10.5px; }
+.node.source rect { fill: var(--src-soft); stroke: var(--src); }
+.node.eph rect { stroke-dasharray: 4 3; }
+.node.st-success rect { stroke: var(--ok); stroke-width: 2; }
+.node.st-error rect, .node.missing rect { stroke: var(--fail); stroke-width: 2; fill: var(--fail-soft); }
+.node.st-skipped rect { stroke: var(--warn); stroke-width: 2; }
+.node.cur rect { stroke-width: 3; }
+.edge { fill: none; stroke: var(--muted); stroke-width: 1.4; opacity: .7; }
+.edge.cyc { stroke: var(--fail); opacity: 1; stroke-width: 2; }
+.arrow { fill: var(--muted); }
+.arrow-cyc { fill: var(--fail); }
+.empty-dag { color: var(--muted); font-size: 13px; padding: 30px 6px; }
+
+.outbody { padding: 0; min-height: 260px; display: flex; flex-direction: column; min-width: 0; }
+pre.console { margin: 0; padding: 12px 14px; font-family: var(--f-mono); font-size: 12px; line-height: 1.6; overflow: auto; max-height: 420px; min-height: 260px; white-space: pre; background: var(--code); border-radius: 0 0 10px 10px; }
+.console .ok { color: var(--ok); } .console .err { color: var(--fail); } .console .wrn { color: var(--warn); } .console .dim { color: var(--muted); }
+.console .insp { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line); background: var(--surface); color: var(--src); border-radius: 4px; padding: 0 6px; margin-left: 6px; }
+.prevbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.prevbar select { font-family: var(--f-mono); font-size: 12.5px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--code); color: var(--ink); }
+.tablewrap { overflow: auto; max-height: 380px; }
+table.grid { border-collapse: collapse; font-family: var(--f-mono); font-size: 12px; width: max-content; min-width: 100%; }
+table.grid th, table.grid td { padding: 5px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; font-variant-numeric: tabular-nums; }
+table.grid th { position: sticky; top: 0; background: var(--sunk); color: var(--muted); font-weight: 500; }
+.note { padding: 12px 14px; color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: no-preference) { .status, .node rect { transition: background-color .2s, stroke .2s; } }
+</style>
+
+<header class="top"><div class="top-in">
+  <div class="brand">dbt <span>Workbench</span></div>
+  <div class="tag">A working dbt project in your browser. Edit, run, break, fix.</div>
+  <div class="progress"><span id="engine">Starting warehouse…</span> &nbsp; <span id="prog">0 of 6 done</span></div>
+</div></header>
+
+<div class="app">
+  <aside class="rail">
+    <div>
+      <h2>Lessons</h2>
+      <div id="lessonList"></div>
+    </div>
+    <details class="cheat">
+      <summary>Command cheat sheet</summary>
+      <dl>
+        <dt>dbt run</dt><dd>Build every model, in dependency order.</dd>
+        <dt>dbt test</dt><dd>Run every data test against what is already built.</dd>
+        <dt>dbt build</dt><dd>Run and test together, model by model. Skips everything downstream of a failure.</dd>
+        <dt>dbt compile</dt><dd>Render the Jinja into plain SQL without running it.</dd>
+        <dt>dbt run -s stg_orders+</dt><dd>One model plus everything downstream of it.</dd>
+        <dt>dbt run --full-refresh</dt><dd>Rebuild incremental models from scratch.</dd>
+        <dt>dbt docs generate</dt><dd>Builds a docs site with this same lineage graph.</dd>
+      </dl>
+    </details>
+    <p class="fine">How this lab differs from real dbt: it runs SQLite in your browser, flattens <code>schema.table</code> to <code>schema_table</code>, and supports the Jinja you need here: <code>ref</code>, <code>source</code>, <code>config</code>, <code>this</code>, <code>is_incremental()</code>. No macros, seeds or snapshots. Your edits are saved in this browser; the warehouse resets on reload.</p>
+  </aside>
+
+  <main>
+    <section class="brief">
+      <div>
+        <div class="kicker" id="kicker"></div>
+        <h1 id="ltitle"></h1>
+        <div class="prose" id="lbody"></div>
+      </div>
+      <div class="task">
+        <h3>Your task</h3>
+        <div id="ltask"></div>
+        <div class="status" id="status"><b>Not checked yet</b><span class="msg">Run a dbt command and your work is checked automatically.</span></div>
+        <div class="row">
+          <button class="ghost" id="hintBtn" type="button">Show hint</button>
+          <button class="ghost" id="resetBtn" type="button">Reset lesson</button>
+          <button class="next" id="nextBtn" type="button" hidden>Next lesson →</button>
+        </div>
+        <div class="hint" id="hint" hidden></div>
+        <details class="sol" id="sol"><summary>Show a solution</summary><div id="solBody"></div></details>
+      </div>
+    </section>
+
+    <section class="work">
+      <div class="pane">
+        <div class="pane-h" id="fileTabs"></div>
+        <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="File editor"></textarea>
+        <div class="cmds">
+          <button class="cmd primary" type="button" data-cmd="build" disabled>dbt build</button>
+          <button class="cmd" type="button" data-cmd="run" disabled>dbt run</button>
+          <button class="cmd" type="button" data-cmd="test" disabled>dbt test</button>
+          <button class="cmd" type="button" data-cmd="compile" disabled>dbt compile</button>
+          <label><input type="checkbox" id="fullRefresh"> --full-refresh</label>
+          <span class="spacer"></span>
+          <button class="cmd land" type="button" id="landBtn" hidden disabled>Land new raw data</button>
+        </div>
+      </div>
+
+      <div class="pane">
+        <div class="dag" id="dag"></div>
+        <div class="pane-h">
+          <button class="tab out on" type="button" data-out="log">Console</button>
+          <button class="tab out" type="button" data-out="compiled">Compiled SQL</button>
+          <button class="tab out" type="button" data-out="preview">Preview data</button>
+        </div>
+        <div class="outbody">
+          <pre class="console" id="outLog"><span class="dim">Console output from dbt commands appears here.</span></pre>
+          <pre class="console" id="outCompiled" hidden></pre>
+          <div id="outPreview" hidden>
+            <div class="prevbar"><label for="prevSel">Relation</label><select id="prevSel"></select><span class="fine" id="prevInfo"></span></div>
+            <div class="tablewrap" id="prevTable"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-asm.js"></script>
+<script>
+(function () {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } }
+};
+
+/* ---------------- Sample warehouse data (illustrative) ---------------- */
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const pad = n => String(n).padStart(2, '0');
+const MERCHANTS = [[1, 'Northwind Day Spa', 'Enterprise'], [2, 'Harbor Escape Rooms', 'Local'], [3, 'Summit Climbing Gym', 'Enterprise'],
+  [4, 'Lumen Photo Studio', 'Local'], [5, 'Bayside Bistro', 'Local'], [6, 'Copper Kettle Cooking School', 'Enterprise']];
+function makeOrders() {
+  const r = rng(42), rows = [];
+  for (let i = 0; i < 40; i++) {
+    const day = 1 + (i % 10), h = 9 + Math.floor(r() * 12), mi = Math.floor(r() * 60), mid = 1 + Math.floor(r() * 6), x = r();
+    const st = x < 0.8 ? 'completed' : x < 0.92 ? 'refunded' : 'cancelled';
+    rows.push([1001 + i, mid, `2026-10-${pad(day)} ${pad(h)}:${pad(mi)}:00`, st, (15 + Math.floor(r() * 106)) * 100]);
+  }
+  rows[22][3] = 'COMPLETED';          // a source system that shouts
+  rows.push(rows[6].slice());          // order 1007 delivered twice
+  return rows;
+}
+function makeBatch2() {
+  const r = rng(7), rows = [];
+  for (let i = 0; i < 10; i++) {
+    const d = i < 3 ? '10' : i < 7 ? '11' : '12', h = 9 + Math.floor(r() * 12), mi = Math.floor(r() * 60);
+    rows.push([1041 + i, 1 + Math.floor(r() * 6), `2026-10-${d} ${pad(h)}:${pad(mi)}:00`, r() < 0.85 ? 'completed' : 'refunded', (15 + Math.floor(r() * 106)) * 100]);
+  }
+  return rows;
+}
+
+/* ---------------- Lesson content ---------------- */
+const SOURCES_YML = `version: 2
+
+sources:
+  - name: shop
+    schema: raw
+    description: Raw marketplace extracts, loaded daily by the EL tool.
+    tables:
+      - name: orders
+      - name: merchants
+`;
+const STG_ORDERS_HARD = `-- Staging model: one tidy row per raw order.
+-- Rename columns and convert units here. Nothing more.
+
+select
+    id                    as order_id,
+    merchant_id,
+    ordered_at,
+    status,
+    amount_cents / 100.0  as amount_usd
+from raw_orders
+`;
+const STG_ORDERS = STG_ORDERS_HARD.replace('from raw_orders', "from {{ source('shop', 'orders') }}");
+const STG_ORDERS_CLEAN = `-- Staging model: one tidy row per raw order.
+-- Rename columns and convert units here. Nothing more.
+
+select distinct
+    id                    as order_id,
+    merchant_id,
+    ordered_at,
+    lower(status)         as status,
+    amount_cents / 100.0  as amount_usd
+from {{ source('shop', 'orders') }}
+`;
+const STG_MERCHANTS = `select
+    id        as merchant_id,
+    name      as merchant_name,
+    segment
+from {{ source('shop', 'merchants') }}
+`;
+const FCT_BODY = `select
+    m.merchant_id,
+    m.merchant_name,
+    m.segment,
+    count(*)  as orders,
+    sum(case when o.status = 'completed' then o.amount_usd else 0 end) as completed_usd
+from FROM_ORDERS o
+join FROM_MERCHANTS m on m.merchant_id = o.merchant_id
+group by 1, 2, 3
+`;
+const FCT_HARD = '-- Mart: one row per merchant with order totals.\n\n' + FCT_BODY.replace('FROM_ORDERS', 'stg_orders').replace('FROM_MERCHANTS', 'stg_merchants');
+const FCT_REF = '-- Mart: one row per merchant with order totals.\n\n' + FCT_BODY.replace('FROM_ORDERS', "{{ ref('stg_orders') }}").replace('FROM_MERCHANTS', "{{ ref('stg_merchants') }}");
+const SCHEMA_L4 = `version: 2
+
+models:
+  - name: stg_orders
+    description: One row per order. Grain is order_id.
+    columns:
+      - name: order_id
+        data_tests:
+          - unique
+          - not_null
+      - name: status
+        data_tests:
+          - accepted_values:
+              values: ['completed', 'refunded', 'cancelled']
+      - name: merchant_id
+        data_tests:
+          - relationships:
+              to: ref('stg_merchants')
+              field: merchant_id
+`;
+const FCT_DAILY = `{{ config(
+    materialized='incremental',
+    unique_key='order_date'
+) }}
+
+-- Daily order totals. On incremental runs, only process new days.
+
+select
+    date(ordered_at)            as order_date,
+    count(*)                    as orders,
+    round(sum(amount_usd), 2)   as revenue_usd
+from {{ ref('stg_orders') }}
+
+{% if is_incremental() %}
+-- {{ this }} is the table as it exists in the warehouse right now
+where date(ordered_at) > (select max(order_date) from {{ this }})
+{% endif %}
+
+group by 1
+`;
+const INT_BROKEN = `-- Intermediate: roll orders up to one row per merchant.
+
+select
+    merchant_id,
+    count(*)  as orders,
+    sum(case when status = 'completed' then amount_usd else 0 end) as completed_usd
+from {{ ref('stg_orders') }}
+where merchant_id in (select merchant_id from {{ ref('fct_merchant_sales') }})
+group by 1
+`;
+const INT_FIXED = INT_BROKEN.replace("where merchant_id in (select merchant_id from {{ ref('fct_merchant_sales') }})\n", '');
+const FCT_L6_BROKEN = `{{ config(materialized='table') }}
+
+-- Mart: merchant details plus their order rollup.
+
+select
+    m.merchant_id,
+    m.merchant_name,
+    m.segment,
+    i.orders,
+    i.completed_usd
+from {{ ref('int_merchant_orders') }} i
+join {{ ref('stg_merchant') }} m on m.merchant_id = i.merchant_id
+`;
+const SCHEMA_L6 = `version: 2
+
+models:
+  - name: stg_orders
+    columns:
+      - name: order_id
+        data_tests:
+          - unique
+          - not_null
+  - name: fct_merchant_sales
+    description: One row per merchant.
+    columns:
+      - name: merchant_id
+        data_tests:
+          - unique
+          - not_null
+`;
+
+function built(r, name) { return r && r.models[name] && r.models[name].status === 'success'; }
+function needRun(r) { return !r || (r.cmd !== 'run' && r.cmd !== 'build') ? { ok: false, msg: 'Use dbt run or dbt build so models actually get built.' } : null; }
+
+const LESSONS = [
+  {
+    id: 'models', title: 'Models and sources', open: 'models/stg_orders.sql',
+    body: `<p>A dbt project is a folder of <code>.sql</code> files. Each file is a <strong>model</strong>: one <code>select</code>. You never write <code>create table</code>. dbt wraps your select in the right DDL and runs it in the warehouse.</p>
+<p>Raw tables come in through <code>{{ source('shop', 'orders') }}</code>, declared once in <code>sources.yml</code>. That declaration lets dbt trace lineage back to raw data and check how fresh it is. A hard-coded table name still runs, but dbt can't see it.</p>`,
+    task: `<ol><li>Click <b>dbt run</b> and look at the graph: <code>stg_orders</code> has no parent.</li>
+<li>In <code>stg_orders.sql</code>, replace <code>raw_orders</code> with <code>{{ source('shop', 'orders') }}</code>.</li>
+<li>Run again, then open <b>Compiled SQL</b> to see what dbt actually sent.</li></ol>`,
+    hint: "The two arguments come from sources.yml: the source is named <code>shop</code> and the table is <code>orders</code>. The compiled SQL says <code>raw_orders</code> again, because the source's schema is <code>raw</code>.",
+    files: { 'models/sources.yml': SOURCES_YML, 'models/stg_orders.sql': STG_ORDERS_HARD },
+    solution: { 'models/stg_orders.sql': STG_ORDERS },
+    check(c) {
+      const r = c.run, n = needRun(r); if (n) return n;
+      const m = r.proj.models.stg_orders;
+      if (!m) return { ok: false, msg: 'models/stg_orders.sql is missing.' };
+      if (!m.sources.includes('shop.orders')) return { ok: false, msg: "stg_orders still reads raw_orders directly, so dbt draws no source behind it. Use {{ source('shop', 'orders') }}." };
+      if (!built(r, 'stg_orders')) return { ok: false, msg: 'stg_orders did not build. Read the error in the console.' };
+      return { ok: true, msg: 'stg_orders builds from a declared source. The graph now shows where its data comes from.' };
+    }
+  },
+  {
+    id: 'ref', title: 'ref() builds the DAG', open: 'models/fct_merchant_sales.sql',
+    body: `<p><code>{{ ref('stg_orders') }}</code> does two jobs. It resolves to the right table for wherever you run (your dev schema or prod), and it tells dbt that this model depends on <code>stg_orders</code>. dbt builds the DAG (directed acyclic graph) from these calls and runs models in dependency order.</p>
+<p>Hard-code a name and dbt doesn't know about the dependency. It falls back to alphabetical order, which is often wrong.</p>`,
+    task: `<ol><li>Click <b>dbt run</b>. <code>fct_merchant_sales</code> runs first and fails, because <code>stg_orders</code> doesn't exist yet.</li>
+<li>Replace both hard-coded names in <code>fct_merchant_sales.sql</code> with <code>ref()</code>.</li>
+<li>Run again and watch the graph redraw.</li></ol>
+<p class="fine">Trap: a second run before the fix "works", because the first run left <code>stg_orders</code> behind. A fresh environment would still fail.</p>`,
+    hint: "Swap <code>from stg_orders o</code> for <code>from {{ ref('stg_orders') }} o</code>, and do the same for <code>stg_merchants</code>.",
+    files: { 'models/sources.yml': SOURCES_YML, 'models/stg_orders.sql': STG_ORDERS, 'models/stg_merchants.sql': STG_MERCHANTS, 'models/fct_merchant_sales.sql': FCT_HARD },
+    solution: { 'models/fct_merchant_sales.sql': FCT_REF },
+    check(c) {
+      const r = c.run, n = needRun(r); if (n) return n;
+      const m = r.proj.models.fct_merchant_sales;
+      if (!m) return { ok: false, msg: 'models/fct_merchant_sales.sql is missing.' };
+      const miss = ['stg_orders', 'stg_merchants'].filter(x => !m.refs.includes(x));
+      if (miss.length) return { ok: false, msg: `fct_merchant_sales doesn't ref() ${miss.join(' or ')} yet, so dbt can't order the build.` };
+      if (!built(r, 'fct_merchant_sales')) return { ok: false, msg: 'fct_merchant_sales did not build. Read the console.' };
+      return { ok: true, msg: 'Both dependencies are declared. dbt now builds the staging models first, every time, in any environment.' };
+    }
+  },
+  {
+    id: 'mat', title: 'Materializations', open: 'models/fct_merchant_sales.sql',
+    body: `<p>The same <code>select</code> can land in the warehouse in different forms. You choose per model:</p>
+<table><tr><th>materialized</th><th>What dbt creates</th><th>Use it for</th></tr>
+<tr><td><code>view</code></td><td>A stored query, recomputed on every read. This is the default.</td><td>Light staging models</td></tr>
+<tr><td><code>table</code></td><td>Data written at build time. Fast to read, stale until the next run.</td><td>Marts that dashboards read</td></tr>
+<tr><td><code>incremental</code></td><td>A table that only processes new rows each run</td><td>Big fact tables (lesson 5)</td></tr>
+<tr><td><code>ephemeral</code></td><td>Nothing. dbt pastes the SQL into downstream models as a CTE.</td><td>Small helper logic</td></tr></table>
+<p>Set it at the top of the model with <code>{{ config(materialized='table') }}</code>, or for a whole folder in <code>dbt_project.yml</code>.</p>`,
+    task: `<ol><li>Make <code>fct_merchant_sales</code> a <code>table</code>.</li>
+<li>Make <code>stg_merchants</code> <code>ephemeral</code>.</li>
+<li>Run, then open <code>fct_merchant_sales.sql</code> and click <b>dbt compile</b> to see the CTE dbt injected.</li></ol>`,
+    hint: "Put <code>{{ config(materialized='table') }}</code> on the first line of fct_merchant_sales.sql, and <code>{{ config(materialized='ephemeral') }}</code> on the first line of stg_merchants.sql.",
+    files: { 'models/sources.yml': SOURCES_YML, 'models/stg_orders.sql': STG_ORDERS, 'models/stg_merchants.sql': STG_MERCHANTS, 'models/fct_merchant_sales.sql': FCT_REF },
+    solution: { 'models/fct_merchant_sales.sql': "{{ config(materialized='table') }}\n\n" + FCT_REF, 'models/stg_merchants.sql': "{{ config(materialized='ephemeral') }}\n\n" + STG_MERCHANTS },
+    check(c) {
+      const r = c.run, n = needRun(r); if (n) return n;
+      const f = r.proj.models.fct_merchant_sales, s = r.proj.models.stg_merchants;
+      if (!f || !s) return { ok: false, msg: 'Keep fct_merchant_sales and stg_merchants in the project.' };
+      if (f.materialized !== 'table') return { ok: false, msg: `fct_merchant_sales is still a ${f.materialized}.` };
+      if (s.materialized !== 'ephemeral') return { ok: false, msg: `stg_merchants is still a ${s.materialized}.` };
+      if (!built(r, 'fct_merchant_sales')) return { ok: false, msg: 'fct_merchant_sales did not build. Read the console.' };
+      return { ok: true, msg: 'The mart is a real table and stg_merchants lives only inside it as __dbt__cte__stg_merchants. Compile to see it.' };
+    }
+  },
+  {
+    id: 'tests', title: 'Tests catch bad grain', open: 'models/stg_orders.sql',
+    body: `<p>The check you already run by hand before trusting a table, comparing <code>count(*)</code> with <code>count(distinct key)</code>, is dbt's <code>unique</code> test. You declare tests in YAML next to the model. dbt turns each one into a query that returns the bad rows. Zero rows means it passes.</p>
+<p>There are four built-in tests: <code>unique</code>, <code>not_null</code>, <code>accepted_values</code> and <code>relationships</code> (every foreign key exists in the parent). <b>dbt build</b> tests each model as soon as it's built, and skips everything downstream if a test fails, so bad data stops at the first model it reaches.</p>`,
+    task: `<ol><li>Click <b>dbt build</b>. Two tests fail.</li>
+<li>Click <b>Inspect</b> beside each failure to see the SQL dbt ran and the rows it found.</li>
+<li>Fix <code>stg_orders.sql</code>, not the tests, until all four pass.</li></ol>`,
+    hint: 'Order 1007 arrives twice with identical values, and one status is in capitals. <code>select distinct</code> and <code>lower(status)</code> fix both. On real data, ask why the duplicate exists before you hide it.',
+    files: { 'models/sources.yml': SOURCES_YML, 'models/schema.yml': SCHEMA_L4, 'models/stg_orders.sql': STG_ORDERS, 'models/stg_merchants.sql': STG_MERCHANTS },
+    solution: { 'models/stg_orders.sql': STG_ORDERS_CLEAN },
+    check(c) {
+      const r = c.run;
+      if (!r || (r.cmd !== 'test' && r.cmd !== 'build')) return { ok: false, msg: 'Use dbt test or dbt build to run the tests.' };
+      const need = ['unique_stg_orders_order_id', 'not_null_stg_orders_order_id', 'accepted_values_stg_orders_status', 'relationships_stg_orders_merchant_id'];
+      const missing = need.filter(x => !r.tests.find(t => t.name === x));
+      if (missing.length) return { ok: false, msg: `Keep all four tests in schema.yml. Missing: ${missing.join(', ')}.` };
+      const bad = r.tests.filter(t => need.includes(t.name) && t.status !== 'pass');
+      if (bad.length) return { ok: false, msg: `${bad.length} of 4 not passing: ${bad.map(t => t.name).join(', ')}.` };
+      return { ok: true, msg: 'All four tests pass. stg_orders now has one row per order_id, and every status is a known value.' };
+    }
+  },
+  {
+    id: 'inc', title: 'Incremental models', open: 'models/fct_daily_orders.sql', land: true,
+    body: `<p>A <code>table</code> rebuilds everything on every run. On a large fact table that's slow and expensive. An <strong>incremental</strong> model builds the whole table once, then on later runs only processes rows that are new.</p>
+<p>Inside the model, <code>{% if is_incremental() %}</code> wraps a filter that only applies on incremental runs, and <code>{{ this }}</code> points at the existing table. <code>unique_key</code> tells dbt to replace matching rows instead of adding duplicates.</p>
+<p>The risk: the filter decides what counts as new. Rows that arrive late, for a period already loaded, are skipped without any error. No test fails. The numbers are just wrong.</p>`,
+    task: `<ol><li><b>dbt run</b>. The first run builds the whole table.</li>
+<li>Click <b>Land new raw data</b>, then <b>dbt run</b> again. The console shows it ran incrementally.</li>
+<li>The check below compares the result with a full rebuild. Fix the filter so late rows are picked up, and make the two match.</li></ol>`,
+    hint: 'Change <code>&gt;</code> to <code>&gt;=</code> so the latest loaded day is reprocessed on every run. <code>unique_key</code> replaces that day instead of duplicating it. Rows that were already missed stay missed: tick <code>--full-refresh</code> and run once to rebuild.',
+    files: { 'models/sources.yml': SOURCES_YML, 'models/stg_orders.sql': STG_ORDERS_CLEAN, 'models/fct_daily_orders.sql': FCT_DAILY },
+    solution: { 'models/fct_daily_orders.sql': FCT_DAILY.replace('> (select max', '>= (select max') },
+    check(c) {
+      const r = c.run, n = needRun(r); if (n) return n;
+      const m = r.proj.models.fct_daily_orders;
+      if (!m) return { ok: false, msg: 'Keep models/fct_daily_orders.sql.' };
+      if (m.materialized !== 'incremental') return { ok: false, msg: 'Keep fct_daily_orders incremental. Making it a table hides the problem instead of fixing it.' };
+      if (!built(r, 'fct_daily_orders')) return { ok: false, msg: 'fct_daily_orders did not build. Read the console.' };
+      if (!c.S.landed) return { ok: false, msg: 'Good first build. Now click Land new raw data and run again.' };
+      if (!c.S.incAfterLand) return { ok: false, msg: 'Run again after landing data, so the model runs incrementally.' };
+      let diff;
+      try {
+        const exp = "select date(ordered_at) as d, count(*) as o, round(sum(amount_usd), 2) as r from stg_orders group by 1";
+        diff = c.q(`select d from (select order_date as d, orders as o, revenue_usd as r from fct_daily_orders except select * from (${exp})) union select d from (select * from (${exp}) except select order_date, orders, revenue_usd from fct_daily_orders)`);
+      } catch (e) { return { ok: false, msg: 'Could not compare with a full rebuild (keep the columns order_date, orders, revenue_usd): ' + e.message }; }
+      const days = Array.from(new Set(diff.rows.map(x => x[0]))).sort();
+      if (days.length) {
+        const fixed = />=\s*\(\s*select\s+max/i.test(m.text);
+        return { ok: false, msg: `${days.length} day(s) differ from a full rebuild: ${days.join(', ')}. ` + (fixed ? 'Your filter is fixed now, but rows already skipped stay skipped. Tick --full-refresh and run once.' : 'Which rows did the filter skip?') };
+      }
+      return { ok: true, msg: 'The incremental table matches a full rebuild, including the late rows for 2026-10-10.' };
+    }
+  },
+  {
+    id: 'debug', title: 'Debug a broken project', open: 'models/fct_merchant_sales.sql',
+    body: `<p>Someone left this project broken. <b>dbt build</b> won't start, because parsing fails before any SQL runs. Read the errors from the top, fix them one at a time, and get a clean build.</p>
+<p>What it should do: <code>int_merchant_orders</code> rolls orders up to one row per merchant, and <code>fct_merchant_sales</code> joins that rollup to merchant details. The red edges and boxes in the graph show where to look.</p>`,
+    task: `<ol><li>Run <b>dbt build</b> and read the errors.</li><li>Fix all three bugs.</li><li>Finish with no errors, no skipped models and all tests passing.</li></ol>`,
+    hint: 'One <code>source()</code> table name is misspelled, one <code>ref()</code> name is misspelled, and one model filters on its own downstream model, which creates a cycle. A DAG can never loop back on itself.',
+    files: { 'models/sources.yml': SOURCES_YML, 'models/schema.yml': SCHEMA_L6, 'models/stg_orders.sql': STG_ORDERS_CLEAN,
+      'models/stg_merchants.sql': STG_MERCHANTS.replace("'merchants'", "'merchant'"), 'models/int_merchant_orders.sql': INT_BROKEN, 'models/fct_merchant_sales.sql': FCT_L6_BROKEN },
+    solution: { 'models/stg_merchants.sql': STG_MERCHANTS, 'models/int_merchant_orders.sql': INT_FIXED, 'models/fct_merchant_sales.sql': FCT_L6_BROKEN.replace("ref('stg_merchant')", "ref('stg_merchants')") },
+    check(c) {
+      const r = c.run;
+      if (!r || r.cmd !== 'build') return { ok: false, msg: 'This one is judged on dbt build.' };
+      if (r.parseErrors.length) return { ok: false, msg: `Parsing still fails with ${r.parseErrors.length} error(s).` };
+      const bad = Object.entries(r.models).filter(([, v]) => v.status !== 'success' && v.status !== 'ephemeral').map(([k]) => k);
+      if (bad.length) return { ok: false, msg: `Not built: ${bad.join(', ')}.` };
+      if (!built(r, 'int_merchant_orders') || !built(r, 'fct_merchant_sales')) return { ok: false, msg: 'Keep both int_merchant_orders and fct_merchant_sales in the project.' };
+      const ft = r.tests.filter(t => t.status !== 'pass');
+      if (!r.tests.length) return { ok: false, msg: 'Keep the tests in schema.yml.' };
+      if (ft.length) return { ok: false, msg: `Failing tests: ${ft.map(t => t.name).join(', ')}.` };
+      return { ok: true, msg: 'Clean build. That is the whole course: sources, refs, materializations, tests and incremental logic.' };
+    }
+  }
+];
+
+/* ---------------- dbt-ish engine ---------------- */
+const RX = {
+  ref: () => /\{\{\s*ref\(\s*['"](\w+)['"]\s*\)\s*\}\}/g,
+  src: () => /\{\{\s*source\(\s*['"](\w+)['"]\s*,\s*['"](\w+)['"]\s*\)\s*\}\}/g,
+  cfg: () => /\{\{\s*config\(([\s\S]*?)\)\s*\}\}/g,
+  inc: () => /\{%-?\s*if\s+is_incremental\(\)\s*-?%\}([\s\S]*?)(?:\{%-?\s*else\s*-?%\}([\s\S]*?))?\{%-?\s*endif\s*-?%\}/g,
+  this: () => /\{\{\s*this\s*\}\}/g,
+  cmt: () => /\{#[\s\S]*?#\}/g
+};
+function parseConfig(text) {
+  const out = {}; const m = RX.cfg().exec(text);
+  if (m) for (const a of m[1].matchAll(/(\w+)\s*=\s*['"]([^'"]*)['"]/g)) out[a[1]] = a[2];
+  return out;
+}
+function parseProject(files) {
+  const models = {}, sources = {}, tests = [], errors = [];
+  for (const [path, text] of Object.entries(files)) {
+    if (!path.endsWith('.sql')) continue;
+    const name = path.split('/').pop().replace(/\.sql$/, '');
+    const clean = text.replace(RX.cmt(), '');
+    const cfg = parseConfig(clean);
+    models[name] = { name, path, text,
+      refs: Array.from(new Set(Array.from(clean.matchAll(RX.ref()), x => x[1]))),
+      sources: Array.from(new Set(Array.from(clean.matchAll(RX.src()), x => x[1] + '.' + x[2]))),
+      materialized: cfg.materialized || 'view', unique_key: cfg.unique_key };
+    if (!['view', 'table', 'incremental', 'ephemeral'].includes(models[name].materialized))
+      errors.push(`Compilation Error in model ${name} (${path}): unknown materialization '${models[name].materialized}'`);
+  }
+  for (const [path, text] of Object.entries(files)) {
+    if (!path.endsWith('.yml')) continue;
+    let doc;
+    try { doc = jsyaml.load(text) || {}; } catch (e) { errors.push(`Parsing Error in ${path}: ${e.message.split('\n')[0]}`); continue; }
+    for (const s of doc.sources || []) for (const t of (s && s.tables) || []) {
+      const tn = typeof t === 'string' ? t : t && t.name;
+      if (s.name && tn) sources[s.name + '.' + tn] = { schema: s.schema || s.name, identifier: (t && t.identifier) || tn };
+    }
+    for (const m of doc.models || []) {
+      if (!m || !m.name) continue;
+      if (!models[m.name]) { errors.push(`Parsing Error in ${path}: tests are defined for model '${m.name}', which was not found`); continue; }
+      for (const col of m.columns || []) for (const t of col.data_tests || col.tests || []) {
+        const type = typeof t === 'string' ? t : Object.keys(t || {})[0];
+        const args = typeof t === 'string' ? {} : (t[type] || {});
+        const test = { type, model: m.name, column: col.name, parents: [m.name], path };
+        if (type === 'unique' || type === 'not_null') test.name = `${type}_${m.name}_${col.name}`;
+        else if (type === 'accepted_values') { test.values = args.values || []; test.name = `accepted_values_${m.name}_${col.name}`; }
+        else if (type === 'relationships') {
+          const mm = /ref\(\s*['"](\w+)['"]\s*\)/.exec(String(args.to || ''));
+          test.to = mm && mm[1]; test.field = args.field; test.name = `relationships_${m.name}_${col.name}`;
+          if (!test.to || !models[test.to]) { errors.push(`Compilation Error in test ${test.name}: relationships 'to' must be ref() of an existing model`); continue; }
+          test.parents.push(test.to);
+        } else { errors.push(`Compilation Error in ${path}: this lab doesn't know the test '${type}'`); continue; }
+        tests.push(test);
+      }
+    }
+  }
+  const missing = [];
+  for (const m of Object.values(models)) {
+    for (const r of m.refs) if (!models[r]) { missing.push([m.name, r]); errors.push(`Compilation Error: Model '${m.name}' (${m.path}) depends on a node named '${r}' which was not found`); }
+    for (const s of m.sources) if (!sources[s]) errors.push(`Compilation Error: Model '${m.name}' (${m.path}) depends on a source named '${s}' which was not found`);
+  }
+  // cycle detection
+  const color = {}, stack = []; let cycle = null;
+  function dfs(n) {
+    color[n] = 1; stack.push(n);
+    for (const r of models[n].refs) {
+      if (!models[r]) continue;
+      if (color[r] === 1 && !cycle) { cycle = stack.slice(stack.indexOf(r)).concat(r); }
+      else if (!color[r]) dfs(r);
+    }
+    stack.pop(); color[n] = 2;
+  }
+  Object.keys(models).sort().forEach(n => { if (!color[n]) dfs(n); });
+  const cycleEdges = new Set();
+  if (cycle) {
+    // cycle lists parent chain as child -> ref; edges in the DAG go ref -> child
+    for (let i = 0; i < cycle.length - 1; i++) cycleEdges.add(cycle[i + 1] + '>' + cycle[i]);
+    errors.push('Found a cycle: ' + cycle.slice().reverse().map(x => 'model.' + x).join(' --> '));
+  }
+  // topological order, alphabetical tie-break (what dbt falls back to without refs)
+  const order = [];
+  if (!cycle) {
+    const indeg = {}; Object.keys(models).forEach(n => indeg[n] = models[n].refs.filter(r => models[r]).length);
+    let ready = Object.keys(models).filter(n => indeg[n] === 0).sort();
+    while (ready.length) {
+      const n = ready.shift(); order.push(n);
+      Object.values(models).forEach(m => { if (m.refs.includes(n)) { indeg[m.name]--; if (indeg[m.name] === 0) { ready.push(m.name); ready.sort(); } } });
+    }
+  }
+  return { models, sources, tests, errors, order, missing, cycleEdges };
+}
+
+function compileModel(proj, name, opts) {
+  opts = opts || {};
+  const m = proj.models[name];
+  let sql = m.text.replace(RX.cmt(), '').replace(RX.cfg(), '');
+  sql = sql.replace(RX.inc(), (_, a, b) => opts.isIncremental ? a : (b || ''));
+  const ctes = [];
+  sql = sql.replace(RX.ref(), (_, r) => {
+    const t = proj.models[r];
+    if (t.materialized === 'ephemeral') {
+      const c = compileModel(proj, r);
+      c.ctes.forEach(x => { if (!ctes.find(y => y.name === x.name)) ctes.push(x); });
+      if (!ctes.find(y => y.name === r)) ctes.push({ name: r, sql: c.body });
+      return '__dbt__cte__' + r;
+    }
+    return r;
+  });
+  sql = sql.replace(RX.src(), (_, s, t) => { const x = proj.sources[s + '.' + t]; return x.schema + '_' + x.identifier; });
+  sql = sql.replace(RX.this(), name);
+  const left = /\{\{[\s\S]*?\}\}|\{%[\s\S]*?%\}/.exec(sql);
+  if (left) throw new Error(`Compilation Error in model ${name}: this lab doesn't support the Jinja "${left[0].replace(/\s+/g, ' ')}"`);
+  const body = sql.trim().replace(/;\s*$/, '');
+  return { body, ctes, sql: withCtes(body, ctes) };
+}
+function withCtes(body, ctes) {
+  if (!ctes.length) return body;
+  const lead = /^(\s*(--[^\n]*\n|\/\*[\s\S]*?\*\/))*\s*/.exec(body)[0];
+  const rest = body.slice(lead.length);
+  const defs = ctes.map(c => `__dbt__cte__${c.name} as (\n${c.sql}\n)`).join(',\n');
+  return /^with\s/i.test(rest) ? `${lead}with ${defs},\n${rest.replace(/^with\s+/i, '')}` : `${lead}with ${defs}\n${rest}`;
+}
+function relationOf(proj, name) {
+  return proj.models[name].materialized === 'ephemeral' ? '(\n' + compileModel(proj, name).sql + '\n)' : name;
+}
+function compileTest(proj, t) {
+  const rel = relationOf(proj, t.model), c = t.column;
+  if (t.type === 'unique') return `select ${c} as unique_field, count(*) as n_records\nfrom ${rel} m\nwhere ${c} is not null\ngroup by ${c}\nhaving count(*) > 1`;
+  if (t.type === 'not_null') return `select *\nfrom ${rel} m\nwhere ${c} is null`;
+  if (t.type === 'accepted_values') return `select ${c} as value_field, count(*) as n_records\nfrom ${rel} m\ngroup by ${c}\nhaving ${c} not in (${t.values.map(v => "'" + String(v).replace(/'/g, "''") + "'").join(', ')})`;
+  if (t.type === 'relationships') return `select child.${c} as from_field\nfrom ${rel} child\nleft join ${relationOf(proj, t.to)} parent\n    on child.${c} = parent.${t.field}\nwhere child.${c} is not null\n  and parent.${t.field} is null`;
+  throw new Error('unknown test');
+}
+
+/* ---------------- State ---------------- */
+const S = { li: 0, files: {}, cur: null, db: null, SQL: null, lastRun: null, compiled: {}, landed: false, incAfterLand: false, inspect: null, done: store.get('dbtwb.done', []), checked: null };
+let resetArmed = null;
+
+function q(sql, params) {
+  const st = S.db.prepare(sql);
+  try { if (params) st.bind(params); const cols = st.getColumnNames(), rows = []; while (st.step()) rows.push(st.get()); return { cols, rows }; }
+  finally { st.free(); }
+}
+function relType(name) { const r = q("select type from sqlite_master where name = ?", [name]); return r.rows.length ? r.rows[0][0] : null; }
+function dropRel(name) { const t = relType(name); if (t === 'view') S.db.run(`drop view "${name}"`); else if (t === 'table') S.db.run(`drop table "${name}"`); }
+function count(name) { return q(`select count(*) from "${name}"`).rows[0][0]; }
+
+function freshDb() {
+  if (!S.SQL) return;
+  if (S.db) S.db.close();
+  S.db = new S.SQL.Database();
+  S.db.run("create table raw_orders (id integer, merchant_id integer, ordered_at text, status text, amount_cents integer); create table raw_merchants (id integer, name text, segment text);");
+  const a = S.db.prepare('insert into raw_orders values (?,?,?,?,?)'); makeOrders().forEach(r => a.run(r)); a.free();
+  const b = S.db.prepare('insert into raw_merchants values (?,?,?)'); MERCHANTS.forEach(r => b.run(r)); b.free();
+  S.landed = false; S.incAfterLand = false;
+}
+
+/* ---------------- Commands ---------------- */
+function ts() { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
+function dots(s, w) { return s.length >= w ? s + ' ' : s + ' ' + '.'.repeat(w - s.length); }
+
+function execute(cmd) {
+  const fr = $('#fullRefresh').checked && (cmd === 'run' || cmd === 'build');
+  const out = [], details = [];
+  const P = (cls, text, extra) => out.push(`<span class="${cls}">${esc(text)}</span>${extra || ''}`);
+  const proj = parseProject(S.files);
+  const run = { cmd, proj, models: {}, tests: [], parseErrors: proj.errors };
+  P('dim', `$ dbt ${cmd}${fr ? ' --full-refresh' : ''}`);
+  P('', `${ts()}  Running with dbt=1.9 (browser lab, SQLite adapter)`);
+  P('', `${ts()}  Found ${Object.keys(proj.models).length} models, ${proj.tests.length} data tests, ${Object.keys(proj.sources).length} sources`);
+  if (proj.errors.length) {
+    P('', '');
+    proj.errors.forEach(e => P('err', `${ts()}  ${e}`));
+    P('', ''); P('err', `${ts()}  Encountered ${proj.errors.length} error(s) while parsing the project. Nothing was run.`);
+    finish(run, out); return;
+  }
+  const started = performance.now();
+  S.compiled = {};
+
+  if (cmd === 'compile') {
+    let n = 0;
+    for (const name of proj.order) {
+      try {
+        const m = proj.models[name];
+        const isInc = m.materialized === 'incremental' && relType(name) === 'table' && !fr;
+        S.compiled['models/' + name + '.sql'] = compileModel(proj, name, { isIncremental: isInc }).sql; n++;
+        P('', `${ts()}  Compiled node '${name}'${m.materialized === 'ephemeral' ? ' (ephemeral: inlined as a CTE downstream)' : ''}`);
+      } catch (e) { P('err', `${ts()}  ${e.message}`); }
+    }
+    P('', ''); P('ok', `${ts()}  Compiled ${n} models. Open "Compiled SQL" to read one.`);
+    finish(run, out, 'compiled'); return;
+  }
+
+  const bad = new Set();
+  const upstreamBad = name => proj.models[name].refs.some(r => bad.has(r) || (proj.models[r].materialized === 'ephemeral' && upstreamBad(r)));
+  const steps = [];
+  const runnable = proj.order.filter(n => proj.models[n].materialized !== 'ephemeral');
+  proj.order.filter(n => proj.models[n].materialized === 'ephemeral').forEach(n => run.models[n] = { status: 'ephemeral' });
+  if (cmd === 'run') runnable.forEach(n => steps.push({ kind: 'model', name: n }));
+  else if (cmd === 'test') proj.tests.forEach(t => steps.push({ kind: 'test', t }));
+  else {
+    const placed = new Set(proj.order.filter(n => proj.models[n].materialized === 'ephemeral')), queued = new Set();
+    runnable.forEach(n => {
+      steps.push({ kind: 'model', name: n }); placed.add(n);
+      proj.tests.forEach(t => { if (!queued.has(t.name) && t.parents.every(p => placed.has(p))) { queued.add(t.name); steps.push({ kind: 'test', t }); } });
+    });
+    proj.tests.forEach(t => { if (!queued.has(t.name)) steps.push({ kind: 'test', t }); });
+  }
+  P('', '');
+  let pass = 0, err = 0, skip = 0;
+  const total = steps.length, W = 58;
+  steps.forEach((st, i) => {
+    const k = `${ts()}  ${i + 1} of ${total} `;
+    if (st.kind === 'model') {
+      const name = st.name, m = proj.models[name];
+      if (upstreamBad(name)) { bad.add(name); skip++; run.models[name] = { status: 'skipped' }; P('wrn', k + dots(`SKIP relation ${name}`, W) + ' [SKIP]'); return; }
+      const t0 = performance.now();
+      try {
+        let desc, isInc = false;
+        if (m.materialized === 'incremental') {
+          isInc = relType(name) === 'table' && !fr;
+          const c = compileModel(proj, name, { isIncremental: isInc }); S.compiled[m.path] = c.sql;
+          if (!isInc) { dropRel(name); S.db.run(`create table "${name}" as ${c.sql}`); desc = `OK created sql incremental model ${name}`; run.models[name] = { status: 'success', rows: count(name), isIncremental: false }; }
+          else {
+            S.db.run('drop table if exists temp.__dbt_tmp');
+            S.db.run(`create temp table __dbt_tmp as ${c.sql}`);
+            const nNew = count('__dbt_tmp'); let nDel = 0;
+            if (m.unique_key) { S.db.run(`delete from "${name}" where ${m.unique_key} in (select ${m.unique_key} from temp.__dbt_tmp)`); nDel = S.db.getRowsModified(); }
+            S.db.run(`insert into "${name}" select * from temp.__dbt_tmp`); S.db.run('drop table temp.__dbt_tmp');
+            desc = `OK incremental model ${name}: merged ${nNew} rows (${nDel} replaced)`;
+            run.models[name] = { status: 'success', rows: count(name), isIncremental: true };
+            if (S.landed) S.incAfterLand = true;
+          }
+        } else {
+          const c = compileModel(proj, name); S.compiled[m.path] = c.sql;
+          dropRel(name);
+          if (m.materialized === 'table') { S.db.run(`create table "${name}" as ${c.sql}`); desc = `OK created sql table model ${name}`; }
+          else { S.db.run(`create view "${name}" as ${c.sql}`); try { q(`select * from "${name}" limit 0`); } catch (e) { dropRel(name); throw e; } desc = `OK created sql view model ${name}`; }
+          run.models[name] = { status: 'success', rows: count(name) };
+        }
+        pass++;
+        const secs = ((performance.now() - t0) / 1000).toFixed(2);
+        P('', k + dots(desc, W) + ' ', `<span class="ok">[OK in ${secs}s]</span>`);
+      } catch (e) {
+        bad.add(name); err++; run.models[name] = { status: 'error' };
+        P('', k + dots(`ERROR creating sql ${m.materialized} model ${name}`, W) + ' ', '<span class="err">[ERROR]</span>');
+        details.push(`Database Error in model ${name} (${m.path})\n  ${e.message}`);
+      }
+    } else {
+      const t = st.t;
+      const res = { name: t.name, status: 'pass', failures: 0, sql: '' };
+      run.tests.push(res);
+      if (cmd === 'build' && t.parents.some(p => bad.has(p) || (proj.models[p].materialized === 'ephemeral' ? upstreamBad(p) : run.models[p] && run.models[p].status !== 'success'))) {
+        res.status = 'skip'; skip++; P('wrn', k + dots(`SKIP test ${t.name}`, W) + ' [SKIP]'); return;
+      }
+      const t0 = performance.now();
+      try {
+        res.sql = compileTest(proj, t);
+        const n = q(`select count(*) from (${res.sql})`).rows[0][0];
+        res.failures = n;
+        const secs = ((performance.now() - t0) / 1000).toFixed(2);
+        if (n === 0) { pass++; P('', k + dots(`PASS ${t.name}`, W) + ' ', `<span class="ok">[PASS in ${secs}s]</span><button class="insp" type="button" data-insp="${esc(t.name)}">Inspect</button>`); }
+        else {
+          res.status = 'fail'; err++; bad.add(t.model);
+          P('', k + dots(`FAIL ${n} ${t.name}`, W) + ' ', `<span class="err">[FAIL ${n} in ${secs}s]</span><button class="insp" type="button" data-insp="${esc(t.name)}">Inspect</button>`);
+          details.push(`Failure in test ${t.name} (${t.path})\n  Got ${n} result${n === 1 ? '' : 's'}, configured to fail if != 0`);
+        }
+      } catch (e) {
+        res.status = 'error'; err++; bad.add(t.model);
+        P('', k + dots(`ERROR ${t.name}`, W) + ' ', '<span class="err">[ERROR]</span>');
+        details.push(`Database Error in test ${t.name} (${t.path})\n  ${e.message}`);
+      }
+    }
+  });
+  P('', '');
+  P('', `${ts()}  Finished running ${total} node(s) in ${((performance.now() - started) / 1000).toFixed(2)} seconds.`);
+  if (details.length) { P('', ''); P('err', `${ts()}  Completed with ${details.length} error(s):`); details.forEach(d => { P('', ''); P('err', d); }); }
+  else { P('', ''); P('ok', `${ts()}  Completed successfully`); }
+  P('', ''); P('', `${ts()}  Done. PASS=${pass} WARN=0 ERROR=${err} SKIP=${skip} TOTAL=${total}`);
+  finish(run, out);
+}
+
+function finish(run, out, tab) {
+  S.lastRun = run;
+  $('#outLog').innerHTML = out.join('\n');
+  renderCompiled(); refreshPreviewOptions(); renderDag(); evaluate();
+  showOut(tab || 'log');
+}
+
+/* ---------------- Rendering ---------------- */
+function lesson() { return LESSONS[S.li]; }
+function fileOrder(files) {
+  return Object.keys(files).sort((a, b) => (a.endsWith('.yml') - b.endsWith('.yml')) || a.localeCompare(b));
+}
+function renderNav() {
+  $('#lessonList').innerHTML = LESSONS.map((l, i) => `<button class="lbtn${i === S.li ? ' on' : ''}" type="button" data-lesson="${i}"><span class="n">${pad(i + 1)}</span><span>${esc(l.title)}</span><span class="ck">${S.done.includes(l.id) ? '✓' : ''}</span></button>`).join('');
+  $('#prog').textContent = `${S.done.length} of ${LESSONS.length} done`;
+}
+function renderLesson() {
+  const l = lesson();
+  $('#kicker').textContent = `Lesson ${S.li + 1} of ${LESSONS.length}`;
+  $('#ltitle').textContent = l.title;
+  $('#lbody').innerHTML = l.body;
+  $('#ltask').innerHTML = l.task;
+  $('#hint').innerHTML = l.hint; $('#hint').hidden = true; $('#hintBtn').textContent = 'Show hint';
+  $('#solBody').innerHTML = Object.entries(l.solution).map(([p, t]) => `<p class="fine" style="margin:10px 0 0">${esc(p)}</p><pre>${esc(t)}</pre>`).join('');
+  $('#sol').open = false;
+  $('#landBtn').hidden = !l.land;
+  $('#fullRefresh').checked = false;
+  setStatus(null);
+  $('#nextBtn').hidden = !(S.done.includes(l.id) && S.li < LESSONS.length - 1);
+  renderNav();
+}
+function renderTabs() {
+  const tabs = fileOrder(S.files).map(p => `<button class="tab${p === S.cur ? ' on' : ''}" type="button" data-file="${esc(p)}">${esc(p.replace('models/', ''))}</button>`).join('');
+  $('#fileTabs').innerHTML = tabs + `<span class="newfile"><input id="newName" placeholder="new_model_name" aria-label="New model name"><button class="ghost" type="button" id="newBtn">+ model</button></span>`;
+  $('#editor').value = S.files[S.cur] || '';
+}
+function setStatus(res) {
+  const el = $('#status');
+  if (!res) { el.className = 'status'; el.innerHTML = '<b>Not checked yet</b><span class="msg">Run a dbt command and your work is checked automatically.</span>'; return; }
+  el.className = 'status ' + (res.ok ? 'ok' : 'no');
+  el.innerHTML = `<b>${res.ok ? 'Passed' : 'Not yet'}</b><span class="msg">${esc(res.msg)}</span>`;
+}
+function evaluate() {
+  const l = lesson();
+  let res;
+  try { res = l.check({ run: S.lastRun, S, q }); } catch (e) { res = { ok: false, msg: 'Check failed: ' + e.message }; }
+  setStatus(res);
+  if (res && res.ok && !S.done.includes(l.id)) { S.done.push(l.id); store.set('dbtwb.done', S.done); renderNav(); }
+  $('#nextBtn').hidden = !(res && res.ok && S.li < LESSONS.length - 1);
+}
+function renderCompiled() {
+  const el = $('#outCompiled');
+  if (S.inspect) { el.textContent = `-- target/compiled/lab/tests/${S.inspect.name}.sql\n\n${S.inspect.sql}`; return; }
+  const c = S.compiled[S.cur];
+  if (c) el.textContent = `-- target/compiled/lab/${S.cur}\n\n${c}`;
+  else if (S.cur && S.cur.endsWith('.yml')) el.textContent = '-- YAML files configure the project. They have no compiled SQL.\n-- Select a .sql model tab to see its compiled code.';
+  else el.textContent = `-- No compiled SQL for ${S.cur || 'this file'} yet.\n-- Click dbt compile, or run the model.`;
+}
+function showOut(which) {
+  $$('.tab.out').forEach(b => b.classList.toggle('on', b.dataset.out === which));
+  $('#outLog').hidden = which !== 'log'; $('#outCompiled').hidden = which !== 'compiled'; $('#outPreview').hidden = which !== 'preview';
+  if (which === 'preview') renderPreview();
+}
+
+/* Preview */
+function refreshPreviewOptions() {
+  const sel = $('#prevSel'); const prev = sel.value;
+  const opts = [];
+  if (S.inspect) opts.push([`test:${S.inspect.name}`, `failing rows: ${S.inspect.name}`]);
+  if (S.db) {
+    const rels = q("select name, type from sqlite_master where type in ('table','view') order by name").rows;
+    rels.filter(r => !r[0].startsWith('raw_')).forEach(r => opts.push([`rel:${r[0]}`, `${r[0]}  (${r[1]})`]));
+    rels.filter(r => r[0].startsWith('raw_')).forEach(r => opts.push([`rel:${r[0]}`, `${r[0]}  (source)`]));
+  }
+  sel.innerHTML = opts.map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join('');
+  const want = S.inspect ? `test:${S.inspect.name}` : prev;
+  if (opts.find(o => o[0] === want)) sel.value = want;
+  else { const curName = S.cur && 'rel:' + S.cur.split('/').pop().replace(/\.(sql|yml)$/, ''); if (opts.find(o => o[0] === curName)) sel.value = curName; }
+}
+function renderPreview() {
+  const v = $('#prevSel').value, box = $('#prevTable'), info = $('#prevInfo');
+  if (!S.db) { box.innerHTML = '<div class="note">The warehouse is still starting.</div>'; info.textContent = ''; return; }
+  if (!v) { box.innerHTML = '<div class="note">Nothing built yet. Run dbt run to create some models.</div>'; info.textContent = ''; return; }
+  try {
+    let res;
+    if (v.startsWith('test:')) res = q(S.inspect.sql);
+    else { const n = v.slice(4); res = q(`select * from "${n}" limit 200`); }
+    const total = v.startsWith('test:') ? res.rows.length : count(v.slice(4));
+    info.textContent = `${total} row${total === 1 ? '' : 's'}${total > 200 ? ', first 200 shown' : ''}`;
+    if (!res.rows.length) { box.innerHTML = '<div class="note">No rows. For a test, zero rows means it passes.</div>'; return; }
+    box.innerHTML = `<table class="grid"><thead><tr>${res.cols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${res.rows.map(r => `<tr>${r.map(x => `<td>${x === null ? '<span style="color:var(--muted)">null</span>' : esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  } catch (e) { box.innerHTML = `<div class="note">${esc(e.message)}</div>`; info.textContent = ''; }
+}
+
+/* DAG */
+function renderDag() {
+  const proj = parseProject(S.files);
+  const nodes = {}, edges = [];
+  const add = (key, o) => { if (!nodes[key]) nodes[key] = Object.assign({ key }, o); };
+  Object.values(proj.models).forEach(m => {
+    add('m:' + m.name, { label: m.name, kind: 'model', m });
+    m.sources.forEach(s => { add('s:' + s, { label: s, kind: 'source', ok: !!proj.sources[s] }); edges.push(['s:' + s, 'm:' + m.name]); });
+    m.refs.forEach(r => { const k = proj.models[r] ? 'm:' + r : 'x:' + r; if (!proj.models[r]) add(k, { label: r, kind: 'missing' }); edges.push([k, 'm:' + m.name]); });
+  });
+  const keys = Object.keys(nodes);
+  if (!keys.length) { $('#dag').innerHTML = '<div class="empty-dag">No models yet.</div>'; return; }
+  const depth = {}, visiting = new Set();
+  function d(k) {
+    if (depth[k] != null) return depth[k];
+    if (visiting.has(k)) return 1;
+    visiting.add(k);
+    const parents = edges.filter(e => e[1] === k).map(e => e[0]);
+    const v = parents.length ? 1 + Math.max(...parents.map(d)) : (nodes[k].kind === 'model' ? 1 : 0);
+    visiting.delete(k); depth[k] = v; return v;
+  }
+  keys.forEach(d);
+  const layers = {}; keys.forEach(k => (layers[depth[k]] = layers[depth[k]] || []).push(k));
+  const L = Object.keys(layers).map(Number).sort((a, b) => a - b);
+  L.forEach(l => layers[l].sort());
+  const NW = 168, NH = 40, CW = 206, RH = 54, PX = 10, PY = 10;
+  const maxRows = Math.max(...L.map(l => layers[l].length));
+  const pos = {};
+  L.forEach((l, li) => layers[l].forEach((k, i) => { pos[k] = { x: PX + li * CW, y: PY + i * RH + (maxRows - layers[l].length) * RH / 2 }; }));
+  const W = PX * 2 + (L.length - 1) * CW + NW, H = PY * 2 + (maxRows - 1) * RH + NH;
+  const st = S.lastRun ? S.lastRun.models : {};
+  const curModel = S.cur ? 'm:' + S.cur.split('/').pop().replace(/\.sql$/, '') : '';
+  let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Model lineage graph"><defs>
+<marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker>
+<marker id="ahc" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow-cyc" d="M0,0 L8,4 L0,8 z"/></marker></defs>`;
+  edges.forEach(([a, b]) => {
+    const p = pos[a], q2 = pos[b]; if (!p || !q2) return;
+    const cyc = proj.cycleEdges.has(a.slice(2) + '>' + b.slice(2)) && a.startsWith('m:');
+    let path;
+    if (q2.x > p.x) { const x1 = p.x + NW, y1 = p.y + NH / 2, x2 = q2.x - 2, y2 = q2.y + NH / 2; path = `M${x1},${y1} C${x1 + 40},${y1} ${x2 - 40},${y2} ${x2},${y2}`; }
+    else { const x1 = p.x + NW / 2, y1 = p.y + NH, x2 = q2.x + NW / 2, y2 = q2.y + NH; path = `M${x1},${y1} C${x1},${y1 + 30} ${x2},${y2 + 30} ${x2},${y2 + 2}`; }
+    svg += `<path class="edge${cyc ? ' cyc' : ''}" d="${path}" marker-end="url(#${cyc ? 'ahc' : 'ah'})"/>`;
+  });
+  keys.forEach(k => {
+    const n = nodes[k], p = pos[k];
+    let cls = 'node', sub;
+    if (n.kind === 'source') { cls += n.ok ? ' source' : ' missing'; sub = n.ok ? 'source' : 'source not declared'; }
+    else if (n.kind === 'missing') { cls += ' missing'; sub = 'not found'; }
+    else {
+      sub = n.m.materialized; if (n.m.materialized === 'ephemeral') cls += ' eph';
+      const s = st[n.label] && st[n.label].status;
+      if (s === 'success') { cls += ' st-success'; if (st[n.label].rows != null) sub += ` · ${st[n.label].rows} rows`; }
+      else if (s === 'error') cls += ' st-error'; else if (s === 'skipped') cls += ' st-skipped';
+      if (k === curModel) cls += ' cur';
+    }
+    const label = n.label.length > 22 ? n.label.slice(0, 21) + '…' : n.label;
+    const open = n.kind === 'model' ? ` data-file="${esc(n.m.path)}" tabindex="0" role="button" aria-label="Open ${esc(n.label)}"` : '';
+    svg += `<g class="${cls}" transform="translate(${p.x},${p.y})"${open}><rect width="${NW}" height="${NH}" rx="6"/><text class="nm" x="10" y="17">${esc(label)}</text><text class="sb" x="10" y="31">${esc(sub)}</text></g>`;
+  });
+  svg += '</svg>';
+  $('#dag').innerHTML = svg + `<div class="legend"><span><i style="border-color:var(--src);background:var(--src-soft)"></i>source</span><span><i style="border-color:var(--ok)"></i>built</span><span><i style="border-color:var(--fail);background:var(--fail-soft)"></i>error or missing</span><span><i style="border-color:var(--warn)"></i>skipped</span><span><i style="border-color:var(--muted);border-style:dashed"></i>ephemeral</span><span>Click a model to open it</span></div>`;
+}
+
+/* ---------------- Lesson loading ---------------- */
+function loadLesson(i, reset) {
+  S.li = i; const l = lesson();
+  const saved = reset ? null : store.get('dbtwb.files.' + l.id, null);
+  S.files = saved && typeof saved === 'object' && Object.keys(saved).length ? saved : JSON.parse(JSON.stringify(l.files));
+  if (reset) store.set('dbtwb.files.' + l.id, S.files);
+  S.cur = S.files[l.open] != null ? l.open : fileOrder(S.files)[0];
+  S.lastRun = null; S.compiled = {}; S.inspect = null;
+  freshDb();
+  store.set('dbtwb.lesson', i);
+  renderLesson(); renderTabs(); renderDag(); renderCompiled(); refreshPreviewOptions();
+  $('#outLog').innerHTML = '<span class="dim">Console output from dbt commands appears here. The warehouse for this lesson is fresh: only raw_orders and raw_merchants exist.</span>';
+  $('#landBtn').disabled = !S.db; $('#landBtn').textContent = 'Land new raw data';
+  showOut('log');
+}
+
+/* ---------------- Events ---------------- */
+let dagTimer = null;
+$('#editor').addEventListener('input', e => {
+  S.files[S.cur] = e.target.value; store.set('dbtwb.files.' + lesson().id, S.files);
+  clearTimeout(dagTimer); dagTimer = setTimeout(renderDag, 250);
+});
+$('#editor').addEventListener('keydown', e => {
+  if (e.key === 'Tab' && !e.shiftKey) {
+    e.preventDefault(); const t = e.target, s = t.selectionStart, en = t.selectionEnd;
+    t.value = t.value.slice(0, s) + '    ' + t.value.slice(en); t.selectionStart = t.selectionEnd = s + 4;
+    t.dispatchEvent(new Event('input'));
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); if (S.db) execute('build'); }
+});
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-lesson],[data-file],[data-cmd],[data-out],[data-insp]');
+  if (!t) return;
+  if (t.dataset.lesson != null) { loadLesson(+t.dataset.lesson); return; }
+  if (t.dataset.file != null) { if (S.files[t.dataset.file] == null) return; S.cur = t.dataset.file; S.inspect = null; renderTabs(); renderDag(); renderCompiled(); return; }
+  if (t.dataset.cmd) { if (S.db) { S.inspect = null; execute(t.dataset.cmd); } return; }
+  if (t.dataset.out) { showOut(t.dataset.out); return; }
+  if (t.dataset.insp) {
+    const r = S.lastRun && S.lastRun.tests.find(x => x.name === t.dataset.insp);
+    if (r && r.sql) { S.inspect = { name: r.name, sql: r.sql }; renderCompiled(); refreshPreviewOptions(); showOut('preview'); }
+  }
+});
+document.addEventListener('keydown', e => {
+  const g = e.target.closest && e.target.closest('g.node[data-file]');
+  if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); S.cur = g.dataset.file; renderTabs(); renderDag(); renderCompiled(); }
+});
+$('#fileTabs').addEventListener('click', e => {
+  if (e.target.id !== 'newBtn') return;
+  const inp = $('#newName'), name = inp.value.trim();
+  if (!/^[a-z_][a-z0-9_]*$/.test(name)) { inp.value = ''; inp.placeholder = 'lowercase_with_underscores'; inp.focus(); return; }
+  const p = 'models/' + name + '.sql';
+  if (S.files[p] == null) S.files[p] = `-- ${name}\n\nselect *\nfrom {{ ref('stg_orders') }}\n`;
+  S.cur = p; store.set('dbtwb.files.' + lesson().id, S.files); renderTabs(); renderDag();
+});
+$('#fileTabs').addEventListener('keydown', e => { if (e.target.id === 'newName' && e.key === 'Enter') { e.preventDefault(); $('#newBtn').click(); } });
+$('#prevSel').addEventListener('change', renderPreview);
+$('#hintBtn').addEventListener('click', () => { const h = $('#hint'); h.hidden = !h.hidden; $('#hintBtn').textContent = h.hidden ? 'Show hint' : 'Hide hint'; });
+$('#nextBtn').addEventListener('click', () => { if (S.li < LESSONS.length - 1) loadLesson(S.li + 1); });
+$('#resetBtn').addEventListener('click', () => {
+  const b = $('#resetBtn');
+  if (!resetArmed) { b.textContent = 'Click again to reset files'; resetArmed = setTimeout(() => { resetArmed = null; b.textContent = 'Reset lesson'; }, 3000); return; }
+  clearTimeout(resetArmed); resetArmed = null; b.textContent = 'Reset lesson'; loadLesson(S.li, true);
+});
+$('#landBtn').addEventListener('click', () => {
+  if (!S.db || S.landed) return;
+  const st = S.db.prepare('insert into raw_orders values (?,?,?,?,?)'); const rows = makeBatch2(); rows.forEach(r => st.run(r)); st.free();
+  S.landed = true; $('#landBtn').disabled = true; $('#landBtn').textContent = 'New data landed';
+  $('#outLog').innerHTML = `<span class="dim">$ (EL tool) load shop.orders</span>\n${ts()}  Loaded ${rows.length} new rows into raw_orders: 3 dated 2026-10-10, 4 dated 2026-10-11, 3 dated 2026-10-12.\n${ts()}  Nothing in dbt has changed yet. Run it.`;
+  refreshPreviewOptions(); showOut('log');
+});
+
+/* ---------------- Boot ---------------- */
+const startLesson = Math.min(Math.max(+store.get('dbtwb.lesson', 0) || 0, 0), LESSONS.length - 1);
+loadLesson(startLesson);
+const eng = $('#engine');
+if (typeof initSqlJs !== 'function' || typeof jsyaml === 'undefined') { eng.textContent = 'Engine failed to load'; eng.className = 'bad'; }
+else initSqlJs().then(SQL => {
+  S.SQL = SQL; freshDb();
+  $$('[data-cmd]').forEach(b => b.disabled = false); $('#landBtn').disabled = false;
+  eng.textContent = 'Warehouse ready'; eng.className = 'ready';
+  refreshPreviewOptions();
+}).catch(e => { eng.textContent = 'Engine failed: ' + e.message; eng.className = 'bad'; });
+})();
+</script>
+
+</body></html>
